@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html"
 	"html/template"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -31,6 +32,7 @@ type Frame interface {
 	AddMarkdown(file string) *One
 	AddContent(filePath string, overwrite bool) error
 	GetContent(key string) ([]byte, bool)
+	Headers(w http.ResponseWriter, r *http.Request)
 }
 
 type frame struct {
@@ -119,4 +121,26 @@ func (f *frame) AddContent(filePath string, overwrite bool) error {
 func (f *frame) GetContent(key string) ([]byte, bool) {
 	value, exists := f.content[key]
 	return value, exists
+}
+
+func (f *frame) Headers(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	// valChan := o.Observe("count")
+	// count := <-valChan
+
+	// current, err := strconv.Atoi(r.Header.Get("Y"))
+	// if err != nil || current < 0 || current >= count {
+	// 	current = 0
+	// }
+
+	// prev := (current - 1 + count) % count
+	// next := (current + 1) % count
+
+	// w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	// w.Header().Set("X", strconv.Itoa(prev))
+	// w.Header().Set("Y", strconv.Itoa(current))
+	// w.Header().Set("Z", strconv.Itoa(next))
+
+	// frame := o.Frames[current]
+	// fmt.Fprint(w, *frame)
 }
