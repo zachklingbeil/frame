@@ -7,7 +7,7 @@ import (
 	"html/template"
 	"net/http"
 	"os"
-	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -18,34 +18,30 @@ func NewFrame() Frame {
 		element: NewElement().(*element),
 		text:    NewText().(*text),
 		Index:   make([]*One, 0),
-		content: map[string][]byte{},
 	}
 	return f
 }
 
 type Frame interface {
-	Build(class string, elements ...One) *One
+	Build(class string, elements ...*One) *One
 	JS(js string) One
 	CSS(css string) One
 	UpdateIndex(*One)
-	Count() uint8
+	Count() int
 	AddMarkdown(file string) *One
-	AddContent(filePath string, overwrite bool) error
-	GetContent(key string) ([]byte, bool)
 	Headers(w http.ResponseWriter, r *http.Request)
 }
 
 type frame struct {
 	*element
 	*text
-	Index   []*One
-	content map[string][]byte
+	Index []*One
 }
 
-func (f *frame) Build(class string, elements ...One) *One {
+func (f *frame) Build(class string, elements ...*One) *One {
 	var b strings.Builder
 	for _, el := range elements {
-		b.WriteString(string(el))
+		b.WriteString(string(*el))
 	}
 
 	if class == "" {
@@ -74,8 +70,8 @@ func (f *frame) CSS(css string) One {
 	return One(template.HTML(b.String()))
 }
 
-func (f *frame) Count() uint8 {
-	return uint8(len(f.Index))
+func (f *frame) Count() int {
+	return int(len(f.Index))
 }
 
 func (f *frame) UpdateIndex(frame *One) {
@@ -98,49 +94,34 @@ func (f *frame) AddMarkdown(file string) *One {
 	return &result
 }
 
-// Load a single file into memory and store it in a map with the filename (without extension) as the key.
-// If overwrite is true, replace existing entries; otherwise skip if the key exists.
-func (f *frame) AddContent(filePath string, overwrite bool) error {
-	value, err := os.ReadFile(filePath)
-	if err != nil {
-		return err
-	}
+func (f *frame) Zero(src, alt, heading string) {
+	img := f.Img(src, alt, "large")
+	h1 := f.H1(heading)
 
-	base := filepath.Base(filePath)
-	key := base[:len(base)-len(filepath.Ext(base))]
-
-	if !overwrite {
-		if _, exists := f.content[key]; exists {
-			return nil // Skip if already exists
-		}
-	}
-	f.content[key] = value
-	return nil
-}
-
-func (f *frame) GetContent(key string) ([]byte, bool) {
-	value, exists := f.content[key]
-	return value, exists
+	landingPage := f.Build("", img, h1)
+	f.UpdateIndex(landingPage)
 }
 
 func (f *frame) Headers(w http.ResponseWriter, r *http.Request) {
+	count := f.Count()
+	if count == 0 {
+		http.Error(w, "No frames available", http.StatusNotFound)
+		return
+	}
+
+	current, err := strconv.Atoi(r.Header.Get("Y"))
+	if err != nil || current < 0 || current >= count {
+		current = 0
+	}
+
+	prev := (current - 1 + count) % count
+	next := (current + 1) % count
+
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	// valChan := o.Observe("count")
-	// count := <-valChan
+	w.Header().Set("X", strconv.Itoa(prev))
+	w.Header().Set("Y", strconv.Itoa(current))
+	w.Header().Set("Z", strconv.Itoa(next))
 
-	// current, err := strconv.Atoi(r.Header.Get("Y"))
-	// if err != nil || current < 0 || current >= count {
-	// 	current = 0
-	// }
-
-	// prev := (current - 1 + count) % count
-	// next := (current + 1) % count
-
-	// w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	// w.Header().Set("X", strconv.Itoa(prev))
-	// w.Header().Set("Y", strconv.Itoa(current))
-	// w.Header().Set("Z", strconv.Itoa(next))
-
-	// frame := o.Frames[current]
-	// fmt.Fprint(w, *frame)
+	frame := f.Index[current]
+	fmt.Fprint(w, *frame)
 }

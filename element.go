@@ -59,7 +59,20 @@ func (e *element) List(items []any, ordered bool) *One {
 }
 
 func (e *element) Img(src, alt, reference string) *One {
-	o := One(template.HTML(fmt.Sprintf(`<img src="%s" alt="%s" ref="%s"/>`, html.EscapeString(src), html.EscapeString(alt), html.EscapeString(reference))))
+	styles := "width: 50vw; display: block; margin: 0 auto;"
+	switch reference {
+	case "large":
+		styles = "width: 75vw; display: block; margin: 0 auto;"
+	case "small":
+		styles = "width: 25vw; display: block; margin: 0 auto;"
+	}
+
+	o := One(template.HTML(fmt.Sprintf(
+		`<img src="%s" alt="%s" style="%s"/>`,
+		html.EscapeString(src),
+		html.EscapeString(alt),
+		styles,
+	)))
 	return &o
 }
 
