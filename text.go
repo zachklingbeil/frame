@@ -1,6 +1,10 @@
 package frame
 
 import (
+	"bytes"
+	"html/template"
+	"os"
+
 	math "github.com/litao91/goldmark-mathjax"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/extension"
@@ -9,6 +13,7 @@ import (
 )
 
 type Text interface {
+	AddMarkdown(file string) *One
 	H1(s string) *One
 	H2(s string) *One
 	H3(s string) *One
@@ -60,6 +65,23 @@ func initGoldmark() *goldmark.Markdown {
 		),
 	)
 	return &md
+}
+
+func (t *text) AddMarkdown(file string) *One {
+	content, err := os.ReadFile(file)
+	if err != nil {
+		empty := One("")
+		return &empty
+	}
+
+	var buf bytes.Buffer
+	if err := (*t.Md).Convert(content, &buf); err != nil {
+		empty := One("")
+		return &empty
+	}
+
+	result := One(template.HTML(buf.String()))
+	return &result
 }
 
 func (t *text) H1(s string) *One         { return Tag("h1", s) }
