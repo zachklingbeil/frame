@@ -107,9 +107,9 @@ func (f *frame) Zero(src, alt, heading string) {
 			gap: 2rem;
 		}
 		.home img {
-			max-width: 75vw;
 			height: auto;
 			display: block;
+			object-fit: contain;
 		}
 		.home h1 {
 			margin: 0;
