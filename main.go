@@ -13,19 +13,18 @@ import (
 
 type One template.HTML
 
-func NewFrame(src, alt, heading string) Frame {
+func NewFrame() Frame {
 	f := &frame{
 		Element: NewElement().(*element),
 		Text:    NewText().(*text),
 		index:   make([]*One, 0),
 		Router:  mux.NewRouter(),
 	}
-	f.Zero(src, alt, heading)
 	return f
 }
 
 type Frame interface {
-	Zero(src, alt, heading string)
+	Zero(src, alt, heading string) *One
 	Build(class string, elements ...*One) *One
 	JS(js string) One
 	CSS(css string) One
@@ -93,44 +92,12 @@ func (f *frame) CSS(css string) One {
 	return One(template.HTML(b.String()))
 }
 
-func (f *frame) Zero(src, alt, heading string) {
-	// Add CSS for centered layout with dynamic scaling
-	css := f.CSS(`
-		.home {
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			justify-content: center;
-			height: 100%;
-			width: 100%;
-			text-align: center;
-			gap: 1rem;
-			padding: 1rem;
-			box-sizing: border-box;
-			overflow: hidden;
-		}
-		.home img {
-			max-width: 100%;
-			max-height: 70%;
-			width: auto;
-			height: auto;
-			display: block;
-			object-fit: contain;
-		}
-		.home h1 {
-			margin: 0;
-			color: inherit;
-			max-width: 100%;
-			word-wrap: break-word;
-			font-size: clamp(1rem, 4vw, 2rem);
-		}
-	`)
-
+func (f *frame) Zero(src, alt, heading string) *One {
 	img := f.Element.Img(src, alt, "large")
 	h1 := f.Text.H1(heading)
 
-	landingPage := f.Build("home", &css, img, h1)
-	f.UpdateIndex(landingPage)
+	landingPage := f.Build("zero", img, h1)
+	return landingPage
 }
 
 func (f *frame) Headers(w http.ResponseWriter, r *http.Request) {
