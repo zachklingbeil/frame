@@ -25,7 +25,7 @@ func NewFrame() Frame {
 
 type Frame interface {
 	Zero(src, alt, heading string) *One
-	Build(class string, elements ...*One) *One
+	Build(class string, updateIndex bool, elements ...*One) *One
 	JS(js string) One
 	CSS(css string) One
 	UpdateIndex(*One)
@@ -60,7 +60,7 @@ func (f *frame) UpdateIndex(frame *One) {
 	f.index = append(f.index, frame) // Changed from f.Index
 }
 
-func (f *frame) Build(class string, elements ...*One) *One {
+func (f *frame) Build(class string, updateIndex bool, elements ...*One) *One {
 	var b strings.Builder
 	for _, el := range elements {
 		b.WriteString(string(*el))
@@ -68,11 +68,19 @@ func (f *frame) Build(class string, elements ...*One) *One {
 
 	if class == "" {
 		result := One(template.HTML(b.String()))
+		if updateIndex {
+			f.UpdateIndex(&result)
+		}
 		return &result
 	}
 	consolidatedContent := template.HTML(b.String())
 	htmlResult := fmt.Sprintf(`<div class="%s">%s</div>`, html.EscapeString(class), string(consolidatedContent))
 	result := One(template.HTML(htmlResult))
+
+	if updateIndex {
+		f.UpdateIndex(&result)
+	}
+
 	return &result
 }
 
@@ -96,7 +104,7 @@ func (f *frame) Zero(src, alt, heading string) *One {
 	img := f.Element.Img(src, alt, "large")
 	h1 := f.Text.H1(heading)
 
-	landingPage := f.Build("zero", img, h1)
+	landingPage := f.Build("zero", false, img, h1)
 	return landingPage
 }
 
