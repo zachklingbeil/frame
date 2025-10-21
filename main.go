@@ -13,13 +13,14 @@ import (
 
 type One template.HTML
 
-func NewFrame() Frame {
+func NewFrame(src, alt, heading string) Frame {
 	f := &frame{
 		Element: NewElement(),
 		Text:    NewText(),
 		Index:   make([]*One, 0),
 		Router:  mux.NewRouter(),
 	}
+	f.Zero(src, alt, heading)
 	return f
 }
 
@@ -105,7 +106,7 @@ func (f *frame) Headers(w http.ResponseWriter, r *http.Request) {
 }
 
 func (f *frame) Serve() {
-	f.Router.HandleFunc("/", f.Headers).Methods("GET")
+	f.HandleFunc("/", f.Headers).Methods("GET")
 	go func() {
 		http.ListenAndServe(":1002", f.Router)
 	}()
