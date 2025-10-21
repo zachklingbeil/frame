@@ -13,14 +13,13 @@ import (
 
 type One template.HTML
 
-func NewFrame(src, alt, heading string) Frame {
+func NewFrame() Frame {
 	f := &frame{
 		Element: NewElement().(*element),
 		Text:    NewText().(*text),
 		index:   make([]*One, 0),
 		Router:  mux.NewRouter(),
 	}
-	f.Zero(src, alt, heading)
 	return f
 }
 
