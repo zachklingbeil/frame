@@ -24,7 +24,7 @@ func NewFrame() Frame {
 }
 
 type Frame interface {
-	Zero(src, alt, heading string)
+	Zero(src, heading string)
 	Build(class string, updateIndex bool, elements ...*One) *One
 	JS(js string) One
 	CSS(css string) One
@@ -100,8 +100,8 @@ func (f *frame) CSS(css string) One {
 	return One(template.HTML(b.String()))
 }
 
-func (f *frame) Zero(src, alt, heading string) {
-	img := f.Element.Img(src, alt, "large")
+func (f *frame) Zero(src, heading string) {
+	img := f.Element.Img(src, "logo", "large")
 	h1 := f.Text.H1(heading)
 	css := f.CSS(`
 		.zero {
