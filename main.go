@@ -15,9 +15,9 @@ type One template.HTML
 
 func NewFrame(src, alt, heading string) Frame {
 	f := &frame{
-		Element: NewElement(),
-		Text:    NewText(),
-		Index:   make([]*One, 0),
+		Element: NewElement().(*element),
+		Text:    NewText().(*text),
+		index:   make([]*One, 0),
 		Router:  mux.NewRouter(),
 	}
 	f.Zero(src, alt, heading)
@@ -33,15 +33,31 @@ type Frame interface {
 	Count() int
 	Headers(w http.ResponseWriter, r *http.Request)
 	Serve()
+	Index() []*One
 	Element
 	Text
 }
 
 type frame struct {
 	*mux.Router
-	Index []*One
+	index []*One
 	Element
 	Text
+}
+
+// Add the Index() getter method
+func (f *frame) Index() []*One {
+	return f.index
+}
+
+// Update Count() method
+func (f *frame) Count() int {
+	return int(len(f.index)) // Changed from f.Index
+}
+
+// Update UpdateIndex() method
+func (f *frame) UpdateIndex(frame *One) {
+	f.index = append(f.index, frame) // Changed from f.Index
 }
 
 func (f *frame) Build(class string, elements ...*One) *One {
@@ -76,14 +92,6 @@ func (f *frame) CSS(css string) One {
 	return One(template.HTML(b.String()))
 }
 
-func (f *frame) Count() int {
-	return int(len(f.Index))
-}
-
-func (f *frame) UpdateIndex(frame *One) {
-	f.Index = append(f.Index, frame)
-}
-
 func (f *frame) Zero(src, alt, heading string) {
 	img := f.Element.Img(src, alt, "large")
 	h1 := f.Text.H1(heading)
@@ -102,7 +110,7 @@ func (f *frame) Headers(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("X-Index", strconv.Itoa(f.Count()))
 	w.Header().Set("X-Frame", strconv.Itoa(current))
-	fmt.Fprint(w, *f.Index[current])
+	fmt.Fprint(w, *f.index[current])
 }
 
 func (f *frame) Serve() {
