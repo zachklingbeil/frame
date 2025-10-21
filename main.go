@@ -15,8 +15,8 @@ type One template.HTML
 
 func NewFrame() Frame {
 	f := &frame{
-		Element: NewElement().(*element),
-		Text:    NewText().(*text),
+		Element: NewElement(),
+		Text:    NewText(),
 		Index:   make([]*One, 0),
 		Router:  mux.NewRouter(),
 	}
@@ -32,13 +32,15 @@ type Frame interface {
 	Count() int
 	Headers(w http.ResponseWriter, r *http.Request)
 	Serve()
+	Element
+	Text
 }
 
 type frame struct {
-	Element
-	Text
 	*mux.Router
 	Index []*One
+	Element
+	Text
 }
 
 func (f *frame) Build(class string, elements ...*One) *One {
