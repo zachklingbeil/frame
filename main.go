@@ -94,7 +94,7 @@ func (f *frame) CSS(css string) One {
 }
 
 func (f *frame) Zero(src, alt, heading string) {
-	// Add CSS for centered layout
+	// Add CSS for centered layout with dynamic scaling
 	css := f.CSS(`
 		.home {
 			display: flex;
@@ -104,9 +104,15 @@ func (f *frame) Zero(src, alt, heading string) {
 			height: 100%;
 			width: 100%;
 			text-align: center;
-			gap: 2rem;
+			gap: 1rem;
+			padding: 1rem;
+			box-sizing: border-box;
+			overflow: hidden;
 		}
 		.home img {
+			max-width: 100%;
+			max-height: 70%;
+			width: auto;
 			height: auto;
 			display: block;
 			object-fit: contain;
@@ -114,6 +120,9 @@ func (f *frame) Zero(src, alt, heading string) {
 		.home h1 {
 			margin: 0;
 			color: inherit;
+			max-width: 100%;
+			word-wrap: break-word;
+			font-size: clamp(1rem, 4vw, 2rem);
 		}
 	`)
 
