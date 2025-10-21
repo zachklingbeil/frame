@@ -15,8 +15,8 @@ type One template.HTML
 
 func NewFrame() Frame {
 	f := &frame{
-		Element: NewElement(),
-		Text:    NewText(),
+		Element: NewElement().(*element),
+		Text:    NewText().(*text),
 		Index:   make([]*One, 0),
 		Router:  mux.NewRouter(),
 	}
