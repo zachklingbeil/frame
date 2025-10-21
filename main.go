@@ -94,10 +94,33 @@ func (f *frame) CSS(css string) One {
 }
 
 func (f *frame) Zero(src, alt, heading string) {
+	// Add CSS for centered layout
+	css := f.CSS(`
+		.home {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			height: 100%;
+			width: 100%;
+			text-align: center;
+			gap: 2rem;
+		}
+		.home img {
+			max-width: 75vw;
+			height: auto;
+			display: block;
+		}
+		.home h1 {
+			margin: 0;
+			color: inherit;
+		}
+	`)
+
 	img := f.Element.Img(src, alt, "large")
 	h1 := f.Text.H1(heading)
 
-	landingPage := f.Build("", img, h1)
+	landingPage := f.Build("home", &css, img, h1)
 	f.UpdateIndex(landingPage)
 }
 
