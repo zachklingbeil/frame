@@ -34,6 +34,7 @@ type Frame interface {
 	Headers(w http.ResponseWriter, r *http.Request)
 	Serve()
 	Index() []*One
+	AddPath(dir string, prefix string)
 	Element
 	Text
 }
