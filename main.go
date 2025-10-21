@@ -24,7 +24,7 @@ func NewFrame() Frame {
 }
 
 type Frame interface {
-	Zero(src, alt, heading string) *One
+	Zero(src, alt, heading string)
 	Build(class string, updateIndex bool, elements ...*One) *One
 	JS(js string) One
 	CSS(css string) One
@@ -100,12 +100,39 @@ func (f *frame) CSS(css string) One {
 	return One(template.HTML(b.String()))
 }
 
-func (f *frame) Zero(src, alt, heading string) *One {
+func (f *frame) Zero(src, alt, heading string) {
 	img := f.Element.Img(src, alt, "large")
 	h1 := f.Text.H1(heading)
-
-	landingPage := f.Build("zero", false, img, h1)
-	return landingPage
+	css := f.CSS(`
+		.zero {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			height: 100%;
+			width: 100%;
+			text-align: center;
+			box-sizing: border-box;
+			overflow: hidden;
+		}
+		.zero img {
+			max-width: 100%;
+			max-height: 70%;
+			width: auto;
+			height: auto;
+			display: block;
+			object-fit: contain;
+		}
+		.zero h1 {
+			color: inherit;
+			width: 100%;
+			white-space: nowrap;
+			overflow: hidden;
+			font-size: clamp(2rem, 3vw, 3rem);
+			margin: 0;
+		}
+	`)
+	f.Build("zero", true, &css, img, h1)
 }
 
 func (f *frame) Headers(w http.ResponseWriter, r *http.Request) {
