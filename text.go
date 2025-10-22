@@ -2,6 +2,7 @@ package frame
 
 import (
 	"bytes"
+	"fmt"
 	"html/template"
 	"os"
 
@@ -37,6 +38,7 @@ type Text interface {
 	Time(s string) *One
 	Button(label string) *One
 	Code(code string) *One
+	ScrollKeybinds() *One
 }
 
 // --- text Implementation ---
@@ -81,6 +83,34 @@ func (t *text) AddMarkdown(file string) *One {
 	}
 
 	result := One(template.HTML(buf.String()))
+	return &result
+}
+
+func (t *text) ScrollKeybinds() *One {
+	js := `
+(function(panel){
+  const content = panel.firstElementChild;
+  let scrolling = 0;
+  const step = () => {
+    if (!scrolling) return;
+    content.scrollBy({ top: scrolling });
+    requestAnimationFrame(step);
+  };
+  panel.addEventListener('panelKey', (e) => {
+    const key = e.detail.key;
+    if (key === 'w') scrolling = -25;
+    else if (key === 's') scrolling = 25;
+    else if (key === 'a') scrolling = -50;
+    else if (key === 'd') scrolling = 50;
+    else return;
+    step();
+  });
+  document.addEventListener('keyup', (e) => {
+    if (['w','s','a','d'].includes(e.key)) scrolling = 0;
+  });
+})(panel);
+`
+	result := One(template.HTML(fmt.Sprintf(`<script>%s</script>`, js)))
 	return &result
 }
 

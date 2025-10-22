@@ -19,7 +19,6 @@ type Element interface {
 	Source(src string) *One
 	Canvas(id string) *One
 	Table(cols uint8, rows uint64, data [][]string) *One
-	AddKeybind(containerId string, keyHandlers map[string]string) *One
 }
 
 // --- element Implementation ---
@@ -119,27 +118,4 @@ func (e *element) Table(cols uint8, rows uint64, data [][]string) *One {
 	b.WriteString("</table>")
 	o := One(template.HTML(b.String()))
 	return &o
-}
-
-func (e *element) AddKeybind(containerId string, keyHandlers map[string]string) *One {
-	var handlers strings.Builder
-	for key, handlerCode := range keyHandlers {
-		handlers.WriteString(fmt.Sprintf(`
-         if (event.key === %q) {
-            %s
-         }
-        `, key, handlerCode))
-	}
-	js := fmt.Sprintf(`
-document.addEventListener('DOMContentLoaded', () => {
-   const container = document.getElementById(%q);
-   if (!container) return;
-   container.tabIndex = 0;
-   container.addEventListener('keydown', (event) => {
-      %s
-   });
-});
-`, containerId, handlers.String())
-	result := One(template.HTML(fmt.Sprintf(`<script>%s</script>`, js)))
-	return &result
 }
