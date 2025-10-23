@@ -76,7 +76,7 @@ func (f *frame) BuildSlides(dir string) *One {
 (function(panel){
     let slideIndex = 0;
     let slides = [];
-    fetch(apiUrl + '/slides/slides.json')
+    fetch(apiUrl + '/slides/slides')
         .then(response => response.json())
         .then(data => {
             slides = data;
