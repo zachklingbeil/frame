@@ -27,6 +27,7 @@ type Frame interface {
 	Zero(src, heading string)
 	Build(class string, updateIndex bool, elements ...*One) *One
 	BuildText(file string) *One
+	BuildSlides(dir string) *One
 	JS(js string) One
 	CSS(css string) One
 	UpdateIndex(*One)
