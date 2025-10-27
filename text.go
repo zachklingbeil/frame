@@ -91,13 +91,6 @@ func (t *text) ScrollKeybinds() *One {
 (function(panel){
   const content = panel.firstElementChild;
   
-  // Restore scroll position after content is ready
-  if (panel.scrollPosition !== undefined) {
-    requestAnimationFrame(() => {
-      content.scrollTop = panel.scrollPosition;
-    });
-  }
-  
   let scrolling = 0;
   const step = () => {
     if (!scrolling) return;
@@ -126,6 +119,13 @@ func (t *text) ScrollKeybinds() *One {
     });
     
     panel.scrollListenerAdded = true;
+  }
+  
+  // Restore scroll position AFTER listeners are set up
+  if (panel.scrollPosition !== undefined) {
+    requestAnimationFrame(() => {
+      content.scrollTop = panel.scrollPosition;
+    });
   }
   
   document.addEventListener('keyup', (e) => {
