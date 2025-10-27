@@ -90,21 +90,42 @@ func (t *text) ScrollKeybinds() *One {
 	js := `
 (function(panel){
   const content = panel.firstElementChild;
+  
+  // Restore scroll position if it exists
+  if (panel.scrollPosition !== undefined) {
+    content.scrollTop = panel.scrollPosition;
+  }
+  
   let scrolling = 0;
   const step = () => {
     if (!scrolling) return;
     content.scrollBy({ top: scrolling });
+    panel.scrollPosition = content.scrollTop;
     requestAnimationFrame(step);
   };
-  panel.addEventListener('panelKey', (e) => {
-    const key = e.detail.key;
+  const handleScroll = (key) => {
     if (key === 'w') scrolling = -25;
     else if (key === 's') scrolling = 25;
     else if (key === 'a') scrolling = -50;
     else if (key === 'd') scrolling = 50;
-    else return;
+    else return false;
     step();
-  });
+    return true;
+  };
+  
+  if (!panel.scrollListenerAdded) {
+    panel.addEventListener('panelKey', (e) => {
+      handleScroll(e.detail.key);
+    });
+    
+    // Store scroll position on any scroll event
+    content.addEventListener('scroll', () => {
+      panel.scrollPosition = content.scrollTop;
+    });
+    
+    panel.scrollListenerAdded = true;
+  }
+  
   document.addEventListener('keyup', (e) => {
     if (['w','s','a','d'].includes(e.key)) scrolling = 0;
   });

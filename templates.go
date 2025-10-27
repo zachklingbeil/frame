@@ -74,29 +74,38 @@ func (f *frame) BuildSlides(dir string) *One {
 	img := f.Img("", "", "")
 	js := f.JS(`
 (function(panel){
-    let slideIndex = 0;
-    let slides = [];
-    fetch(apiUrl + '/slides/slides')
-        .then(response => response.json())
-        .then(data => {
-            slides = data;
-            if (slides.length > 0) showSlide(0);
-        })
-        .catch(error => console.error('Error loading slides:', error));
+    if (!panel.slideIndex) panel.slideIndex = 0;
+    if (!panel.slides) panel.slides = [];
+    
+    if (panel.slides.length === 0) {
+        fetch(apiUrl + '/slides/slides')
+            .then(response => response.json())
+            .then(data => {
+                panel.slides = data;
+                if (panel.slides.length > 0) showSlide(panel.slideIndex);
+            })
+            .catch(error => console.error('Error loading slides:', error));
+    } else {
+        showSlide(panel.slideIndex);
+    }
 
     function showSlide(index) {
-        if (slides.length === 0) return;
-        slideIndex = ((index % slides.length) + slides.length) % slides.length;
+        if (panel.slides.length === 0) return;
+        panel.slideIndex = ((index % panel.slides.length) + panel.slides.length) % panel.slides.length;
         const img = panel.querySelector('.slides img');
         if (img) {
-            img.src = apiUrl + '/slides/' + slides[slideIndex];
-            img.alt = slides[slideIndex];
+            img.src = apiUrl + '/slides/' + panel.slides[panel.slideIndex];
+            img.alt = panel.slides[panel.slideIndex];
         }
     }
-    panel.addEventListener('panelKey', (e) => {
-        if (e.detail.key === 'a') showSlide(slideIndex - 1);
-        else if (e.detail.key === 'd') showSlide(slideIndex + 1);
-    });
+    
+    if (!panel.slidesListenerAdded) {
+        panel.addEventListener('panelKey', (e) => {
+            if (e.detail.key === 'a') showSlide(panel.slideIndex - 1);
+            else if (e.detail.key === 'd') showSlide(panel.slideIndex + 1);
+        });
+        panel.slidesListenerAdded = true;
+    }
 })(panel);
     `)
 	css := f.CSS(`
