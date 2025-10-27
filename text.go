@@ -91,9 +91,11 @@ func (t *text) ScrollKeybinds() *One {
 (function(panel){
   const content = panel.firstElementChild;
   
-  // Restore scroll position if it exists
+  // Restore scroll position after content is ready
   if (panel.scrollPosition !== undefined) {
-    content.scrollTop = panel.scrollPosition;
+    requestAnimationFrame(() => {
+      content.scrollTop = panel.scrollPosition;
+    });
   }
   
   let scrolling = 0;
