@@ -91,45 +91,33 @@ func (t *text) ScrollKeybinds() *One {
 (function(panel){
   const content = panel.firstElementChild;
   
+  // Restore scroll position
+  if (panel.scrollPosition) {
+    content.scrollTop = panel.scrollPosition;
+  }
+  
   let scrolling = 0;
+  
   const step = () => {
     if (!scrolling) return;
     content.scrollBy({ top: scrolling });
     panel.scrollPosition = content.scrollTop;
     requestAnimationFrame(step);
   };
-  const handleScroll = (key) => {
-    if (key === 'w') scrolling = -25;
-    else if (key === 's') scrolling = 25;
-    else if (key === 'a') scrolling = -50;
-    else if (key === 'd') scrolling = 50;
-    else return false;
-    step();
-    return true;
-  };
   
-  if (!panel.scrollListenerAdded) {
-    panel.addEventListener('panelKey', (e) => {
-      handleScroll(e.detail.key);
-    });
-    
-    // Store scroll position on any scroll event
-    content.addEventListener('scroll', () => {
-      panel.scrollPosition = content.scrollTop;
-    });
-    
-    panel.scrollListenerAdded = true;
-  }
-  
-  // Restore scroll position AFTER listeners are set up
-  if (panel.scrollPosition !== undefined) {
-    requestAnimationFrame(() => {
-      content.scrollTop = panel.scrollPosition;
-    });
-  }
+  panel.addEventListener('panelKey', (e) => {
+    if (e.detail.key === 'w') { scrolling = -25; step(); }
+    else if (e.detail.key === 's') { scrolling = 25; step(); }
+    else if (e.detail.key === 'a') { scrolling = -50; step(); }
+    else if (e.detail.key === 'd') { scrolling = 50; step(); }
+  });
   
   document.addEventListener('keyup', (e) => {
     if (['w','s','a','d'].includes(e.key)) scrolling = 0;
+  });
+  
+  content.addEventListener('scroll', () => {
+    panel.scrollPosition = content.scrollTop;
   });
 })(panel);
 `
