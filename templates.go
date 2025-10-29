@@ -80,37 +80,30 @@ func (f *frame) BuildSlides(dir string) *One {
 	img := f.Img("", "", "large")
 	js := f.JS(`
 (function(panel){
-    // Initialize state if not present
-    if (!panel.state.slideIndex) panel.state.slideIndex = 0;
-    if (!panel.state.slides) panel.state.slides = [];
+    panel.slideIndex = 0;
+    panel.slides = [];
     
-    // Only fetch if we don't have slides cached
-    if (panel.state.slides.length === 0) {
-        fetch(apiUrl + '/slides/slides')
-            .then(response => response.json())
-            .then(data => {
-                panel.state.slides = data;
-                if (panel.state.slides.length > 0) showSlide(panel.state.slideIndex);
-            })
-            .catch(error => console.error('Error loading slides:', error));
-    } else {
-        // Restore to saved slide
-        showSlide(panel.state.slideIndex);
-    }
+    fetch(apiUrl + '/slides/slides')
+        .then(response => response.json())
+        .then(data => {
+            panel.slides = data;
+            if (panel.slides.length > 0) showSlide(0);
+        })
+        .catch(error => console.error('Error loading slides:', error));
 
     function showSlide(index) {
-        if (panel.state.slides.length === 0) return;
-        panel.state.slideIndex = ((index % panel.state.slides.length) + panel.state.slides.length) % panel.state.slides.length;
-        const img = panel.element.querySelector('.slides img');
+        if (panel.slides.length === 0) return;
+        panel.slideIndex = ((index % panel.slides.length) + panel.slides.length) % panel.slides.length;
+        const img = panel.querySelector('.slides img');
         if (img) {
-            img.src = apiUrl + '/slides/' + panel.state.slides[panel.state.slideIndex];
-            img.alt = panel.state.slides[panel.state.slideIndex];
+            img.src = apiUrl + '/slides/' + panel.slides[panel.slideIndex];
+            img.alt = panel.slides[panel.slideIndex];
         }
     }
     
-    panel.element.addEventListener('panelKey', (e) => {
-        if (e.detail.key === 'a') showSlide(panel.state.slideIndex - 1);
-        else if (e.detail.key === 'd') showSlide(panel.state.slideIndex + 1);
+    panel.addEventListener('panelKey', (e) => {
+        if (e.detail.key === 'a') showSlide(panel.slideIndex - 1);
+        else if (e.detail.key === 'd') showSlide(panel.slideIndex + 1);
     });
 })(panel);
     `)
