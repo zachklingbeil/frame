@@ -44,7 +44,6 @@ func (f *frame) BuildText(file string) *One {
 	max-height: 90%;
 	object-fit: contain;
 }
-
 p {
 	font-size: 1.2em;
 	line-height: 1.5;
