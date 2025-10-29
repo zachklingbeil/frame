@@ -39,6 +39,11 @@ func (f *frame) BuildText(file string) *One {
 	scroll-behavior: smooth;
 	height: 100%;
 }
+.text img {
+	max-width: 90%;
+	max-height: 90%;
+	object-fit: contain;
+}
 
 p {
 	font-size: 1.2em;
