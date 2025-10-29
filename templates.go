@@ -43,6 +43,8 @@ func (f *frame) BuildText(file string) *One {
 	max-width: 90%;
 	max-height: 90%;
 	object-fit: contain;
+	align-items: center;
+	justify-content: center;
 }
 p {
 	font-size: 1.2em;
