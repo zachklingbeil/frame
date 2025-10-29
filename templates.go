@@ -71,7 +71,7 @@ h4 {
 
 func (f *frame) BuildSlides(dir string) *One {
 	f.AddPath(dir, "slides")
-	img := f.Img("", "", "")
+	img := f.Img("", "", "large")
 	js := f.JS(`
 (function(panel){
     panel.slideIndex = 0;
