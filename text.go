@@ -85,17 +85,21 @@ func (t *text) AddMarkdown(file string) *One {
 	result := One(template.HTML(buf.String()))
 	return &result
 }
-
 func (t *text) ScrollKeybinds() *One {
 	js := `
 (function(panel){
-  const content = panel.firstElementChild;
+  const content = panel.element.firstElementChild;  
+  if (panel.state.scrollTop !== undefined) {
+    content.scrollTop = panel.state.scrollTop;
+  }
+  
   let scrolling = 0;
   const step = () => {
     if (!scrolling) return;
     content.scrollBy({ top: scrolling });
     requestAnimationFrame(step);
   };
+  
   const handleScroll = (key) => {
     if (key === 'w') scrolling = -25;
     else if (key === 's') scrolling = 25;
@@ -105,9 +109,15 @@ func (t *text) ScrollKeybinds() *One {
     step();
     return true;
   };
-  panel.addEventListener('panelKey', (e) => {
+  
+  content.addEventListener('scroll', () => {
+    panel.state.scrollTop = content.scrollTop;
+  });
+  
+  panel.element.addEventListener('panelKey', (e) => {
     handleScroll(e.detail.key);
   });
+  
   document.addEventListener('keyup', (e) => {
     if (['w','s','a','d'].includes(e.key)) scrolling = 0;
   });
