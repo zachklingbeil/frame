@@ -52,7 +52,7 @@ func (f *forge) YouTube(videoID string) *One {
 `)
 	embedURL := fmt.Sprintf("https://www.youtube.com/embed/%s", template.HTMLEscapeString(videoID))
 	iframe := One(template.HTML(
-		fmt.Sprintf(`<iframe src="%s" class="youtube-panel" allowfullscreen></iframe>`, embedURL),
+		fmt.Sprintf(`<iframe src="%s" class="youtube-panel"></iframe>`, embedURL),
 	))
 	return f.Build("youtube", true, &css, &iframe)
 }
