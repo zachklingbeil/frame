@@ -42,6 +42,7 @@ type Forge interface {
 	BuildMarkdown(file string) *One
 	BuildSlides(dir string) *One
 	ScrollKeybinds() *One
+	YouTube() *One
 }
 
 func (f *forge) GetFrame(idx int) *One {

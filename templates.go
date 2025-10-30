@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"html/template"
 	"os"
-	"path/filepath"
 )
 
 func (f *forge) Zero(src, heading string) {
@@ -69,10 +68,7 @@ func (f *forge) BuildMarkdown(file string) *One {
 		empty := One("")
 		return &empty
 	}
-	base := filepath.Base(file)
-	name := base[:len(base)-len(filepath.Ext(base))]
 	markdown := One(template.HTML(buf.String()))
-	text := f.WrapDiv("text", &markdown)
 	scroll := f.ScrollKeybinds()
 	css := f.CSS(`
 .text {
@@ -115,7 +111,7 @@ h4 {
     font-size: 1em;
 }
 `)
-	result := f.Build(name, true, text, scroll, &css)
+	result := f.Build("text", true, &markdown, scroll, &css)
 	return result
 }
 
