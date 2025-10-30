@@ -1,6 +1,14 @@
 package frame
 
-func (f *frame) Zero(src, heading string) {
+import (
+	"bytes"
+	"fmt"
+	"html/template"
+	"os"
+	"path/filepath"
+)
+
+func (f *forge) Zero(src, heading string) {
 	img := f.Img(src, "logo", "large")
 	h1 := f.H1(heading)
 	css := f.CSS(`
@@ -27,55 +35,139 @@ func (f *frame) Zero(src, heading string) {
 	f.Build("zero", true, &css, img, h1)
 }
 
-func (f *frame) BuildText(file string) *One {
-	text := f.AddMarkdown(file)
+func (f *forge) YouTube() *One {
+	css := f.CSS(`
+.youtube-panel {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: stretch;
+    justify-content: stretch;
+    overflow: hidden;
+}
+.youtube-panel iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+`)
+	iframe := One(template.HTML(
+		`<iframe src="https://youtube.com" class="youtube-panel" allowfullscreen></iframe>`,
+	))
+	return f.Build("youtube", true, &css, &iframe)
+}
+
+func (f *forge) BuildMarkdown(file string) *One {
+	content, err := os.ReadFile(file)
+	if err != nil {
+		empty := One("")
+		return &empty
+	}
+
+	var buf bytes.Buffer
+	if err := (*f.Markdown()).Convert(content, &buf); err != nil {
+		empty := One("")
+		return &empty
+	}
+	base := filepath.Base(file)
+	name := base[:len(base)-len(filepath.Ext(base))]
+	markdown := One(template.HTML(buf.String()))
+	text := f.WrapDiv("text", &markdown)
 	scroll := f.ScrollKeybinds()
 	css := f.CSS(`
 .text {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	overflow-y: auto;
-	scroll-behavior: smooth;
-	height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+    height: 100%;
 }
 .text img {
-	max-width: 90%;
-	max-height: 90%;
-	object-fit: contain;
-	align-items: center;
-	justify-content: center;
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain;
+    align-items: center;
+    justify-content: center;
 }
 p {
-	font-size: 1.2em;
-	line-height: 1.5;
-	margin: 1em ;
-	justify-content: center;
+    font-size: 1.2em;
+    line-height: 1.5;
+    margin: 1em;
+    justify-content: center;
 }
 
 h2, h3, h4, code {
-	margin: 0.5em;
+    margin: 0.5em;
 }
 
 h1 {
-	font-size: 3.5em;
-	margin-top: 0.5em;
+    font-size: 3.5em;
+    margin-top: 0.5em;
 }
 h2 {
-	font-size: 2em;
+    font-size: 2em;
 }
 h3 {
-	font-size: 1.5em;
+    font-size: 1.5em;
 }
 h4 {
-	font-size: 1em;
+    font-size: 1em;
 }
 `)
-	final := f.Build("text", true, text, scroll, &css)
-	return final
+	result := f.Build(name, true, text, scroll, &css)
+	return result
 }
 
-func (f *frame) BuildSlides(dir string) *One {
+func (f *forge) ScrollKeybinds() *One {
+	js := `
+(function(){
+  const panel = document.currentScript.closest('.panel');
+  const state = panel.__frameState;
+  const content = panel.firstElementChild;
+  
+  // Restore scroll position from state
+  if (state.scrollTop !== undefined) {
+    content.scrollTop = state.scrollTop;
+  }
+  
+  // Save scroll position to state
+  const saveScroll = () => {
+    state.scrollTop = content.scrollTop;
+  };
+  content.addEventListener('scroll', saveScroll);
+  
+  let scrolling = 0;
+  const step = () => {
+    if (!scrolling) return;
+    content.scrollBy({ top: scrolling });
+    requestAnimationFrame(step);
+  };
+  
+  const handleScroll = (key) => {
+    if (key === 'w') scrolling = -25;
+    else if (key === 's') scrolling = 25;
+    else if (key === 'a') scrolling = -50;
+    else if (key === 'd') scrolling = 50;
+    else return false;
+    step();
+    return true;
+  };
+  
+  panel.addEventListener('panelKey', (e) => {
+    handleScroll(e.detail.key);
+  });
+  
+  document.addEventListener('keyup', (e) => {
+    if (['w','s','a','d'].includes(e.key)) scrolling = 0;
+  });
+})();
+`
+	result := One(template.HTML(fmt.Sprintf(`<script>%s</script>`, js)))
+	return &result
+}
+
+func (f *forge) BuildSlides(dir string) *One {
 	f.AddPath(dir)
 	img := f.Img("", "", "large")
 	js := f.JS(`

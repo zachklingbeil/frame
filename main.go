@@ -2,103 +2,35 @@ package frame
 
 import (
 	"fmt"
-	"html"
 	"html/template"
 	"net/http"
+	"regexp"
 	"strconv"
-	"strings"
 
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
 
 type One template.HTML
 
-func NewFrame() Frame {
+func NewFrame(domain string) Frame {
 	f := &frame{
-		Element: NewElement().(*element),
-		Text:    NewText().(*text),
-		index:   make([]*One, 0),
-		Router:  mux.NewRouter(),
+		Router: mux.NewRouter(),
 	}
+	f.Router.Use(f.Cors(domain))
+	f.Forge = NewForge(f.Router).(*forge)
 	return f
 }
 
 type Frame interface {
-	Zero(src, heading string)
-	Build(class string, updateIndex bool, elements ...*One) *One
-	BuildText(file string) *One
-	BuildSlides(dir string) *One
-	JS(js string) One
-	CSS(css string) One
-	UpdateIndex(*One)
-	Count() int
 	Headers(w http.ResponseWriter, r *http.Request)
 	Serve()
-	Index() []*One
-	AddPath(dir string)
-	AddFile(filePath string, routePath string) error
-	Element
-	Text
+	Forge
 }
 
 type frame struct {
 	*mux.Router
-	index []*One
-	Element
-	Text
-	BaseURL string
-}
-
-func (f *frame) Index() []*One {
-	return f.index
-}
-
-func (f *frame) Count() int {
-	return int(len(f.index))
-}
-
-func (f *frame) UpdateIndex(frame *One) {
-	f.index = append(f.index, frame)
-}
-
-func (f *frame) Build(class string, updateIndex bool, elements ...*One) *One {
-	var b strings.Builder
-	for _, el := range elements {
-		b.WriteString(string(*el))
-	}
-
-	if class == "" {
-		result := One(template.HTML(b.String()))
-		if updateIndex {
-			f.UpdateIndex(&result)
-		}
-		return &result
-	}
-	consolidatedContent := template.HTML(b.String())
-	htmlResult := fmt.Sprintf(`<div class="%s">%s</div>`, html.EscapeString(class), string(consolidatedContent))
-	result := One(template.HTML(htmlResult))
-
-	if updateIndex {
-		f.UpdateIndex(&result)
-	}
-
-	return &result
-}
-
-func (f *frame) JS(js string) One {
-	var b strings.Builder
-	b.WriteString(`<script>`)
-	b.WriteString(js)
-	b.WriteString(`</script>`)
-	return One(template.HTML(b.String()))
-}
-
-func (f *frame) CSS(css string) One {
-	var b strings.Builder
-	b.WriteString(`<style>`)
-	b.WriteString(css)
-	b.WriteString(`</style>`)
-	return One(template.HTML(b.String()))
+	Forge
 }
 
 func (f *frame) Headers(w http.ResponseWriter, r *http.Request) {
@@ -109,9 +41,13 @@ func (f *frame) Headers(w http.ResponseWriter, r *http.Request) {
 			current = i
 		}
 	}
-	w.Header().Set("X-Total-Frames", strconv.Itoa(f.Count()))
+	w.Header().Set("X-Frames", strconv.Itoa(f.Count()))
 	w.Header().Set("X-Frame", strconv.Itoa(current))
-	fmt.Fprint(w, *f.index[current])
+
+	frame := f.GetFrame(current)
+	if frame != nil {
+		fmt.Fprint(w, *frame)
+	}
 }
 
 func (f *frame) Serve() {
@@ -119,4 +55,25 @@ func (f *frame) Serve() {
 	go func() {
 		http.ListenAndServe(":1002", f.Router)
 	}()
+}
+
+func (f *frame) Cors(domain string) mux.MiddlewareFunc {
+	var originValidator func(string) bool
+	if domain != "" {
+		subdomainPattern := regexp.MustCompile(`^https://([a-zA-Z0-9-]+\.)+` + regexp.QuoteMeta(domain) + `$`)
+		originValidator = func(origin string) bool {
+			return origin == "https://"+domain || subdomainPattern.MatchString(origin)
+		}
+	} else {
+		originValidator = func(origin string) bool {
+			return origin == "http://localhost:1002"
+		}
+	}
+	return handlers.CORS(
+		handlers.AllowedHeaders([]string{
+			"Content-Type", "X-Frame", "X-Frames", "Cache-Control", "Connection",
+		}),
+		handlers.AllowedOriginValidator(originValidator),
+		handlers.AllowedMethods([]string{"GET"}),
+	)
 }
