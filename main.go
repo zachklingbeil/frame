@@ -108,7 +108,7 @@ func (f *frame) Headers(w http.ResponseWriter, r *http.Request) {
 			current = i
 		}
 	}
-	w.Header().Set("X-Index", strconv.Itoa(f.Count()))
+	w.Header().Set("X-Total-Frames", strconv.Itoa(f.Count()))
 	w.Header().Set("X-Frame", strconv.Itoa(current))
 	fmt.Fprint(w, *f.index[current])
 }
