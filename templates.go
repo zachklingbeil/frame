@@ -99,15 +99,18 @@ func (f *forge) ScrollKeybinds() *One {
   const panel = document.currentScript.closest('.panel');
   const state = panel.__frameState;
   const content = panel.firstElementChild;
+  const frameIndex = panel.__frameIndex;
+  
+  const stateKey = 'scroll_' + frameIndex;
   
   // Restore scroll position from state
-  if (state.scrollTop !== undefined) {
-    content.scrollTop = state.scrollTop;
+  if (state[stateKey] !== undefined) {
+    content.scrollTop = state[stateKey];
   }
   
   // Save scroll position to state
   const saveScroll = () => {
-    state.scrollTop = content.scrollTop;
+    state[stateKey] = content.scrollTop;
   };
   content.addEventListener('scroll', saveScroll);
   
@@ -149,29 +152,32 @@ func (f *forge) BuildSlides(dir string) *One {
     const panel = document.currentScript.closest('.panel');
     const state = panel.__frameState;
     const frameSource = panel.__frameSource;
+    const frameIndex = panel.__frameIndex;
     
-    // Initialize panel-specific state
-    if (state.slideIndex === undefined) {
-        state.slideIndex = 0;
+    const stateKey = 'slideIndex_' + frameIndex;
+    
+    // Initialize panel-specific state for this frame
+    if (state[stateKey] === undefined) {
+        state[stateKey] = 0;
     }
     
     function showSlide(index, slides) {
         if (!slides || slides.length === 0) return;
         
-        // Update panel-specific state
-        state.slideIndex = ((index % slides.length) + slides.length) % slides.length;
+        // Update panel-specific state for this frame
+        state[stateKey] = ((index % slides.length) + slides.length) % slides.length;
         
         const img = panel.querySelector('.slides img');
         if (img) {
-            img.src = apiUrl + '/slides/' + slides[state.slideIndex];
-            img.alt = slides[state.slideIndex];
+            img.src = apiUrl + '/slides/' + slides[state[stateKey]];
+            img.alt = slides[state[stateKey]];
         }
     }
     
     // Load slides using FrameSource cache (shared across all panels)
     frameSource.fetchResource('slides', apiUrl + '/slides/slides')
         .then(slides => {
-            showSlide(state.slideIndex, slides);
+            showSlide(state[stateKey], slides);
         })
         .catch(error => {
             console.error('Error loading slides:', error);
@@ -182,8 +188,8 @@ func (f *forge) BuildSlides(dir string) *One {
         const slides = frameSource.getCachedResource('slides');
         if (!slides) return;
         
-        if (e.detail.key === 'a') showSlide(state.slideIndex - 1, slides);
-        else if (e.detail.key === 'd') showSlide(state.slideIndex + 1, slides);
+        if (e.detail.key === 'a') showSlide(state[stateKey] - 1, slides);
+        else if (e.detail.key === 'd') showSlide(state[stateKey] + 1, slides);
     });
 })();
     `)
