@@ -34,14 +34,6 @@ func (f *forge) Zero(src, heading string) {
 	f.Build("zero", true, &css, img, h1)
 }
 
-func (f *forge) YouTube(videoID string) *One {
-
-	embedURL := fmt.Sprintf("https://www.youtube.com/embed/%s", template.HTMLEscapeString(videoID))
-	embed := One(template.HTML(
-		fmt.Sprintf(`<embed src="%s" class="youtube-panel" type="text/html" />`, embedURL),
-	))
-	return f.Build("youtube", true, &embed)
-}
 func (f *forge) BuildMarkdown(file string) *One {
 	content, err := os.ReadFile(file)
 	if err != nil {
