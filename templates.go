@@ -44,19 +44,18 @@ func (f *forge) YouTube(videoID string) *One {
     justify-content: stretch;
     overflow: hidden;
 }
-.youtube-panel iframe {
+.youtube-panel embed {
     width: 100%;
     height: 100%;
     border: none;
 }
 `)
 	embedURL := fmt.Sprintf("https://www.youtube.com/embed/%s", template.HTMLEscapeString(videoID))
-	iframe := One(template.HTML(
-		fmt.Sprintf(`<iframe src="%s" class="youtube-panel"></iframe>`, embedURL),
+	embed := One(template.HTML(
+		fmt.Sprintf(`<embed src="%s" class="youtube-panel" type="text/html" />`, embedURL),
 	))
-	return f.Build("youtube", true, &css, &iframe)
+	return f.Build("youtube", true, &css, &embed)
 }
-
 func (f *forge) BuildMarkdown(file string) *One {
 	content, err := os.ReadFile(file)
 	if err != nil {
