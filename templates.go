@@ -75,8 +75,8 @@ h4 {
 	return final
 }
 
-func (f *frame) BuildSlides(dir, prefix string) *One {
-	f.AddPath(dir, prefix)
+func (f *frame) BuildSlides(dir string) *One {
+	f.AddPath(dir)
 	img := f.Img("", "", "large")
 	js := f.JS(`
 (function() {

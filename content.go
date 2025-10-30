@@ -33,8 +33,12 @@ func (f *frame) AddFile(filePath string, routePath string) error {
 	return nil
 }
 
-// Walk directory and load files into memory, determine Content-Type based on file extension. Register route/<prefix/<file without extension>.
-func (f *frame) AddPath(dir string, prefix string) {
+// Walk directory and load files into memory, determine Content-Type based on file extension.
+// Register route using directory name as prefix: /<dirname>/<file without extension>
+func (f *frame) AddPath(dir string) {
+	// Get the base directory name to use as prefix
+	prefix := filepath.Base(dir)
+
 	filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil || info.IsDir() {
 			return err
@@ -48,7 +52,7 @@ func (f *frame) AddPath(dir string, prefix string) {
 		base := filepath.Base(path)
 		name := base[:len(base)-len(filepath.Ext(base))]
 		contentType := f.getType(base, fileData)
-		routePath := "/" + strings.Trim(prefix, "/") + "/" + name
+		routePath := "/" + prefix + "/" + name
 
 		f.addRoute(routePath, fileData, contentType)
 		return nil
