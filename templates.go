@@ -75,37 +75,51 @@ h4 {
 	return final
 }
 
-func (f *frame) BuildSlides(dir string) *One {
-	f.AddPath(dir, "slides")
+func (f *frame) BuildSlides(dir, prefix string) *One {
+	f.AddPath(dir, prefix)
 	img := f.Img("", "", "large")
 	js := f.JS(`
-(function(panel){
-    panel.slideIndex = 0;
-    panel.slides = [];
+(function() {
+    const panel = document.currentScript.closest('.panel');
+    const state = panel.__frameState;
+    const frameSource = panel.__frameSource;
     
-    fetch(apiUrl + '/slides/slides')
-        .then(response => response.json())
-        .then(data => {
-            panel.slides = data;
-            if (panel.slides.length > 0) showSlide(0);
-        })
-        .catch(error => console.error('Error loading slides:', error));
-
-    function showSlide(index) {
-        if (panel.slides.length === 0) return;
-        panel.slideIndex = ((index % panel.slides.length) + panel.slides.length) % panel.slides.length;
+    // Initialize panel-specific state
+    if (state.slideIndex === undefined) {
+        state.slideIndex = 0;
+    }
+    
+    function showSlide(index, slides) {
+        if (!slides || slides.length === 0) return;
+        
+        // Update panel-specific state
+        state.slideIndex = ((index % slides.length) + slides.length) % slides.length;
+        
         const img = panel.querySelector('.slides img');
         if (img) {
-            img.src = apiUrl + '/slides/' + panel.slides[panel.slideIndex];
-            img.alt = panel.slides[panel.slideIndex];
+            img.src = apiUrl + '/slides/' + slides[state.slideIndex];
+            img.alt = slides[state.slideIndex];
         }
     }
     
+    // Load slides using FrameSource cache (shared across all panels)
+    frameSource.fetchResource('slides', apiUrl + '/slides/slides')
+        .then(slides => {
+            showSlide(state.slideIndex, slides);
+        })
+        .catch(error => {
+            console.error('Error loading slides:', error);
+        });
+    
+    // Handle navigation
     panel.addEventListener('panelKey', (e) => {
-        if (e.detail.key === 'a') showSlide(panel.slideIndex - 1);
-        else if (e.detail.key === 'd') showSlide(panel.slideIndex + 1);
+        const slides = frameSource.getCachedResource('slides');
+        if (!slides) return;
+        
+        if (e.detail.key === 'a') showSlide(state.slideIndex - 1, slides);
+        else if (e.detail.key === 'd') showSlide(state.slideIndex + 1, slides);
     });
-})(panel);
+})();
     `)
 	css := f.CSS(`
 .slides {

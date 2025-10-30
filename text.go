@@ -88,14 +88,29 @@ func (t *text) AddMarkdown(file string) *One {
 
 func (t *text) ScrollKeybinds() *One {
 	js := `
-(function(panel){
+(function(){
+  const panel = document.currentScript.closest('.panel');
+  const state = panel.__frameState;
   const content = panel.firstElementChild;
+  
+  // Restore scroll position from state
+  if (state.scrollTop !== undefined) {
+    content.scrollTop = state.scrollTop;
+  }
+  
+  // Save scroll position to state
+  const saveScroll = () => {
+    state.scrollTop = content.scrollTop;
+  };
+  content.addEventListener('scroll', saveScroll);
+  
   let scrolling = 0;
   const step = () => {
     if (!scrolling) return;
     content.scrollBy({ top: scrolling });
     requestAnimationFrame(step);
   };
+  
   const handleScroll = (key) => {
     if (key === 'w') scrolling = -25;
     else if (key === 's') scrolling = 25;
@@ -105,13 +120,15 @@ func (t *text) ScrollKeybinds() *One {
     step();
     return true;
   };
+  
   panel.addEventListener('panelKey', (e) => {
     handleScroll(e.detail.key);
   });
+  
   document.addEventListener('keyup', (e) => {
     if (['w','s','a','d'].includes(e.key)) scrolling = 0;
   });
-})(panel);
+})();
 `
 	result := One(template.HTML(fmt.Sprintf(`<script>%s</script>`, js)))
 	return &result

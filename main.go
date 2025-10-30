@@ -27,7 +27,7 @@ type Frame interface {
 	Zero(src, heading string)
 	Build(class string, updateIndex bool, elements ...*One) *One
 	BuildText(file string) *One
-	BuildSlides(dir string) *One
+	BuildSlides(dir, prefix string) *One
 	JS(js string) One
 	CSS(css string) One
 	UpdateIndex(*One)
@@ -36,6 +36,7 @@ type Frame interface {
 	Serve()
 	Index() []*One
 	AddPath(dir string, prefix string)
+	AddFile(filePath string, routePath string) error
 	Element
 	Text
 }
