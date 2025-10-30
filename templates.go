@@ -34,7 +34,7 @@ func (f *forge) Zero(src, heading string) {
 	f.Build("zero", true, &css, img, h1)
 }
 
-func (f *forge) YouTube() *One {
+func (f *forge) YouTube(videoID string) *One {
 	css := f.CSS(`
 .youtube-panel {
     width: 100%;
@@ -50,8 +50,9 @@ func (f *forge) YouTube() *One {
     border: none;
 }
 `)
+	embedURL := fmt.Sprintf("https://www.youtube.com/embed/%s", template.HTMLEscapeString(videoID))
 	iframe := One(template.HTML(
-		`<iframe src="https://youtube.com" class="youtube-panel" allowfullscreen></iframe>`,
+		fmt.Sprintf(`<iframe src="%s" class="youtube-panel" allowfullscreen></iframe>`, embedURL),
 	))
 	return f.Build("youtube", true, &css, &iframe)
 }
