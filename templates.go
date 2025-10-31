@@ -164,14 +164,14 @@ func (f *forge) BuildSlides(dir string) *One {
         }
     }
     
-    window.app.frameSource.fetchResource('slides', apiUrl + '/slides/slides')
+    frameAPI.fetchData('slides', apiUrl + '/slides/slides')
         .then(slides => {
             const state = frameAPI.getState(panel);
             showSlide(state.slideIndex, slides);
         });
     
     frameAPI.onKey(panel, (key) => {
-        const slides = window.app.frameSource.getCachedResource('slides');
+        const slides = frameAPI.getData('slides');
         if (!slides) return;
         
         const state = frameAPI.getState(panel);
