@@ -23,6 +23,14 @@ func (f *forge) Zero(src, heading string) {
 			box-sizing: border-box;
 			overflow: hidden;
 		}
+    .zero img {
+			max-width: 100%;
+			max-height: 100%;
+			width: auto;
+			height: auto;
+			display: block;
+			object-fit: contain;
+		}
 		.zero h1 {
 			color: inherit;
 			width: 100%;
@@ -47,8 +55,6 @@ func (f *forge) BuildMarkdown(file string) *One {
 		empty := One("")
 		return &empty
 	}
-
-	// Remove <p> wrappers around images
 	html := buf.String()
 	html = strings.ReplaceAll(html, "<p><img", "<img")
 	html = strings.ReplaceAll(html, "\"></p>", "\">")
