@@ -66,7 +66,7 @@ func (f *frame) Cors(domain string) mux.MiddlewareFunc {
 		}
 	} else {
 		originValidator = func(origin string) bool {
-			return origin == "http://localhost:1002"
+			return origin == "http://localhost:1001"
 		}
 	}
 	return handlers.CORS(
