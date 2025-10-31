@@ -24,8 +24,8 @@ func (f *forge) Zero(src, heading string) {
 			overflow: hidden;
 		}
     .zero img {
-			max-width: 100%;
-			max-height: 100%;
+			max-width: 95%;
+			max-height: 95%;
 			width: auto;
 			height: auto;
 			display: block;
