@@ -54,15 +54,15 @@ func (f *forge) BuildMarkdown(file string) *One {
     flex-direction: column;
     align-items: center;
     overflow-y: auto;
-    scroll-behavior: smooth;
+    scroll-behavior: auto;
     height: 100%;
 }
 .text img {
     max-width: 90%;
     max-height: 90%;
     object-fit: contain;
-    align-items: center;
-    justify-content: center;
+    display: block;
+    margin: 1em auto;
 }
 p {
     font-size: 1.2em;
@@ -96,24 +96,23 @@ h4 {
 func (f *forge) ScrollKeybinds() *One {
 	js := `
 (function(){
-  const panel = document.currentScript.closest('.panel');
-  const state = panel.__frameState;
+  const panel = frameAPI.getPanel(document.currentScript);
   const content = panel.firstElementChild;
-  const frameIndex = panel.__frameIndex;
+  const state = frameAPI.getState(panel);
   
-  const stateKey = 'scroll_' + frameIndex;
+  // Restore scroll after images load
+  frameAPI.waitForImages(content).then(() => {
+    if (state.scroll !== undefined) {
+      content.scrollTop = state.scroll;
+    }
+  });
   
-  // Restore scroll position from state
-  if (state[stateKey] !== undefined) {
-    content.scrollTop = state[stateKey];
-  }
+  // Save scroll
+  content.addEventListener('scroll', () => {
+    frameAPI.setState(panel, 'scroll', content.scrollTop);
+  });
   
-  // Save scroll position to state
-  const saveScroll = () => {
-    state[stateKey] = content.scrollTop;
-  };
-  content.addEventListener('scroll', saveScroll);
-  
+  // Handle scrolling
   let scrolling = 0;
   const step = () => {
     if (!scrolling) return;
@@ -121,18 +120,13 @@ func (f *forge) ScrollKeybinds() *One {
     requestAnimationFrame(step);
   };
   
-  const handleScroll = (key) => {
+  frameAPI.onKey(panel, (key) => {
     if (key === 'w') scrolling = -25;
     else if (key === 's') scrolling = 25;
     else if (key === 'a') scrolling = -50;
     else if (key === 'd') scrolling = 50;
-    else return false;
+    else return;
     step();
-    return true;
-  };
-  
-  panel.addEventListener('panelKey', (e) => {
-    handleScroll(e.detail.key);
   });
   
   document.addEventListener('keyup', (e) => {
@@ -149,47 +143,38 @@ func (f *forge) BuildSlides(dir string) *One {
 	img := f.Img("", "", "large")
 	js := f.JS(`
 (function() {
-    const panel = document.currentScript.closest('.panel');
-    const state = panel.__frameState;
-    const frameSource = panel.__frameSource;
-    const frameIndex = panel.__frameIndex;
+    const panel = frameAPI.getPanel(document.currentScript);
+    const state = frameAPI.getState(panel);
     
-    const stateKey = 'slideIndex_' + frameIndex;
-    
-    // Initialize panel-specific state for this frame
-    if (state[stateKey] === undefined) {
-        state[stateKey] = 0;
+    if (state.slideIndex === undefined) {
+        frameAPI.setState(panel, 'slideIndex', 0);
     }
     
     function showSlide(index, slides) {
-        if (!slides || slides.length === 0) return;
-        
-        // Update panel-specific state for this frame
-        state[stateKey] = ((index % slides.length) + slides.length) % slides.length;
+        if (!slides?.length) return;
+        const newIndex = ((index % slides.length) + slides.length) % slides.length;
+        frameAPI.setState(panel, 'slideIndex', newIndex);
         
         const img = panel.querySelector('.slides img');
         if (img) {
-            img.src = apiUrl + '/slides/' + slides[state[stateKey]];
-            img.alt = slides[state[stateKey]];
+            img.src = apiUrl + '/slides/' + slides[newIndex];
+            img.alt = slides[newIndex];
         }
     }
     
-    // Load slides using FrameSource cache (shared across all panels)
-    frameSource.fetchResource('slides', apiUrl + '/slides/slides')
+    window.app.frameSource.fetchResource('slides', apiUrl + '/slides/slides')
         .then(slides => {
-            showSlide(state[stateKey], slides);
-        })
-        .catch(error => {
-            console.error('Error loading slides:', error);
+            const state = frameAPI.getState(panel);
+            showSlide(state.slideIndex, slides);
         });
     
-    // Handle navigation
-    panel.addEventListener('panelKey', (e) => {
-        const slides = frameSource.getCachedResource('slides');
+    frameAPI.onKey(panel, (key) => {
+        const slides = window.app.frameSource.getCachedResource('slides');
         if (!slides) return;
         
-        if (e.detail.key === 'a') showSlide(state[stateKey] - 1, slides);
-        else if (e.detail.key === 'd') showSlide(state[stateKey] + 1, slides);
+        const state = frameAPI.getState(panel);
+        if (key === 'a') showSlide(state.slideIndex - 1, slides);
+        else if (key === 'd') showSlide(state.slideIndex + 1, slides);
     });
 })();
     `)
