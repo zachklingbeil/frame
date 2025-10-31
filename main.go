@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
-	"regexp"
 	"strconv"
 
 	"github.com/gorilla/handlers"
@@ -58,22 +57,17 @@ func (f *frame) Serve() {
 }
 
 func (f *frame) Cors(domain string) mux.MiddlewareFunc {
-	var originValidator func(string) bool
+	var allowedOrigins []string
 	if domain != "" {
-		subdomainPattern := regexp.MustCompile(`^https://([a-zA-Z0-9-]+\.)+` + regexp.QuoteMeta(domain) + `$`)
-		originValidator = func(origin string) bool {
-			return origin == "https://"+domain || subdomainPattern.MatchString(origin)
-		}
+		allowedOrigins = []string{"https://" + domain}
 	} else {
-		originValidator = func(origin string) bool {
-			return origin == "http://localhost:1001"
-		}
+		allowedOrigins = []string{"http://localhost:1001"}
 	}
 	return handlers.CORS(
 		handlers.AllowedHeaders([]string{
-			"Content-Type", "X-Frame", "X-Frames", "Cache-Control", "Connection",
+			"Content-Type", "X-Frame", "Cache-Control", "Connection",
 		}),
-		handlers.AllowedOriginValidator(originValidator),
+		handlers.AllowedOrigins(allowedOrigins),
 		handlers.AllowedMethods([]string{"GET"}),
 	)
 }
