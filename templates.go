@@ -129,10 +129,10 @@ func (f *forge) ScrollKeybinds() *One {
   };
   
   frameAPI.onKey(panel, (key) => {
-    if (key === 'w') scrolling = -25;
-    else if (key === 's') scrolling = 25;
-    else if (key === 'a') scrolling = -50;
-    else if (key === 'd') scrolling = 50;
+    if (key === 'w') scrolling = -20;
+    else if (key === 's') scrolling = 20;
+    else if (key === 'a') scrolling = -40;
+    else if (key === 'd') scrolling = 40;
     else return;
     
     if (!isAnimating) {
