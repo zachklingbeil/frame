@@ -117,8 +117,13 @@ func (f *forge) ScrollKeybinds() *One {
   
   // Handle scrolling
   let scrolling = 0;
+  let isAnimating = false;
+  
   const step = () => {
-    if (!scrolling) return;
+    if (!scrolling) {
+      isAnimating = false;
+      return;
+    }
     content.scrollBy({ top: scrolling });
     requestAnimationFrame(step);
   };
@@ -129,7 +134,11 @@ func (f *forge) ScrollKeybinds() *One {
     else if (key === 'a') scrolling = -50;
     else if (key === 'd') scrolling = 50;
     else return;
-    step();
+    
+    if (!isAnimating) {
+      isAnimating = true;
+      step();
+    }
   });
   
   document.addEventListener('keyup', (e) => {
@@ -146,16 +155,13 @@ func (f *forge) BuildSlides(dir string) *One {
 	js := f.JS(`
 (function() {
     const panel = frameAPI.getPanel(document.currentScript);
-    const state = frameAPI.getState(panel);
-    
-    if (state.slideIndex === undefined) {
-        frameAPI.setState(panel, 'slideIndex', 0);
-    }
+    const frameIndex = frameAPI.getFrameIndex(panel);
+    const stateKey = 'slideIndex_' + frameIndex;
     
     function showSlide(index, slides) {
         if (!slides?.length) return;
         const newIndex = ((index % slides.length) + slides.length) % slides.length;
-        frameAPI.setState(panel, 'slideIndex', newIndex);
+        frameAPI.setState(panel, stateKey, newIndex);
         
         const img = panel.querySelector('.slides img');
         if (img) {
@@ -164,19 +170,23 @@ func (f *forge) BuildSlides(dir string) *One {
         }
     }
     
-    frameAPI.fetchData('slides', apiUrl + '/slides/slides')
-        .then(slides => {
-            const state = frameAPI.getState(panel);
-            showSlide(state.slideIndex, slides);
-        });
+    // Fetch slides once globally, then render for this panel
+    frameAPI.fetchData('slides', apiUrl + '/slides/slides').then(slides => {
+        const state = frameAPI.getState(panel);
+        const currentIndex = state[stateKey] ?? 0;
+        frameAPI.setState(panel, stateKey, currentIndex);
+        showSlide(currentIndex, slides);
+    });
     
     frameAPI.onKey(panel, (key) => {
         const slides = frameAPI.getData('slides');
         if (!slides) return;
         
         const state = frameAPI.getState(panel);
-        if (key === 'a') showSlide(state.slideIndex - 1, slides);
-        else if (key === 'd') showSlide(state.slideIndex + 1, slides);
+        const currentIndex = state[stateKey] ?? 0;
+        
+        if (key === 'a') showSlide(currentIndex - 1, slides);
+        else if (key === 'd') showSlide(currentIndex + 1, slides);
     });
 })();
     `)
