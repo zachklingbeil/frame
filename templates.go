@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"os"
+	"strings"
 )
 
 func (f *forge) Zero(src, heading string) {
@@ -46,7 +47,15 @@ func (f *forge) BuildMarkdown(file string) *One {
 		empty := One("")
 		return &empty
 	}
-	markdown := One(template.HTML(buf.String()))
+
+	// Remove <p> wrappers around images
+	html := buf.String()
+	html = strings.ReplaceAll(html, "<p><img", "<img")
+	html = strings.ReplaceAll(html, "\"></p>", "\">")
+	html = strings.ReplaceAll(html, "\" /></p>", "\" />")
+	html = strings.ReplaceAll(html, "\"/></p>", "\"/>")
+
+	markdown := One(template.HTML(html))
 	scroll := f.ScrollKeybinds()
 	css := f.CSS(`
 .text {
