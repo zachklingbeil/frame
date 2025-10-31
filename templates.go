@@ -92,24 +92,27 @@ h4 {
 	result := f.Build("text", true, &markdown, scroll, &css)
 	return result
 }
-
 func (f *forge) ScrollKeybinds() *One {
 	js := `
 (function(){
   const panel = frameAPI.getPanel(document.currentScript);
   const content = panel.firstElementChild;
-  const state = frameAPI.getState(panel);
+  const frameIndex = frameAPI.getFrameIndex(panel);
+  
+  // Use frame-specific state key
+  const stateKey = 'scroll_' + frameIndex;
   
   // Restore scroll after images load
   frameAPI.waitForImages(content).then(() => {
-    if (state.scroll !== undefined) {
-      content.scrollTop = state.scroll;
+    const state = frameAPI.getState(panel);
+    if (state[stateKey] !== undefined) {
+      content.scrollTop = state[stateKey];
     }
   });
   
   // Save scroll
   content.addEventListener('scroll', () => {
-    frameAPI.setState(panel, 'scroll', content.scrollTop);
+    frameAPI.setState(panel, stateKey, content.scrollTop);
   });
   
   // Handle scrolling
@@ -137,7 +140,6 @@ func (f *forge) ScrollKeybinds() *One {
 	result := One(template.HTML(fmt.Sprintf(`<script>%s</script>`, js)))
 	return &result
 }
-
 func (f *forge) BuildSlides(dir string) *One {
 	f.AddPath(dir)
 	img := f.Img("", "", "large")
