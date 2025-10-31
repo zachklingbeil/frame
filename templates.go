@@ -117,13 +117,11 @@ func (f *forge) ScrollKeybinds() *One {
   // Use frame-specific state key
   const stateKey = 'scroll_' + frameIndex;
   
-  // Restore scroll after images load
-  frameAPI.waitForImages(content).then(() => {
-    const state = frameAPI.getState(panel);
-    if (state[stateKey] !== undefined) {
-      content.scrollTop = state[stateKey];
-    }
-  });
+  // Restore scroll
+  const state = frameAPI.getState(panel);
+  if (state[stateKey] !== undefined) {
+    content.scrollTop = state[stateKey];
+  }
   
   // Save scroll
   content.addEventListener('scroll', () => {
