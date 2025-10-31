@@ -158,15 +158,18 @@ func (f *forge) BuildSlides(dir string) *One {
     const frameIndex = frameAPI.getFrameIndex(panel);
     const stateKey = 'slideIndex_' + frameIndex;
     
-    function showSlide(index, slides) {
+    async function showSlide(index, slides) {
         if (!slides?.length) return;
         const newIndex = ((index % slides.length) + slides.length) % slides.length;
         frameAPI.setState(panel, stateKey, newIndex);
         
         const img = panel.querySelector('.slides img');
         if (img) {
-            img.src = apiUrl + '/slides/' + slides[newIndex];
-            img.alt = slides[newIndex];
+            const imagePath = slides[newIndex];
+            const imageUrl = apiUrl + '/slides/' + imagePath;
+            const cachedUrl = await frameAPI.fetchData('slide_' + imagePath, imageUrl);
+            img.src = cachedUrl;
+            img.alt = imagePath;
         }
     }
     
