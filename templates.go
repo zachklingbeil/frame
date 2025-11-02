@@ -162,50 +162,51 @@ func (f *forge) ScrollKeybinds() *One {
 	result := One(template.HTML(fmt.Sprintf(`<script>%s</script>`, js)))
 	return &result
 }
+
 func (f *forge) BuildSlides(dir string) *One {
-	f.AddPath(dir)
+	prefix := f.AddPath(dir)
 	img := f.Img("", "", "large")
-	js := f.JS(`
+	js := f.JS(fmt.Sprintf(`
 (function() {
     const panel = frameAPI.getPanel(document.currentScript);
     const frameIndex = frameAPI.getFrameIndex(panel);
     const stateKey = 'slideIndex_' + frameIndex;
-    
+
     async function showSlide(index, slides) {
         if (!slides?.length) return;
-        const newIndex = ((index % slides.length) + slides.length) % slides.length;
+        const newIndex = ((index %% slides.length) + slides.length) %% slides.length;
         frameAPI.setState(panel, stateKey, newIndex);
-        
+
         const img = panel.querySelector('.slides img');
         if (img) {
             const imagePath = slides[newIndex];
-            const imageUrl = apiUrl + '/slides/' + imagePath;
+            const imageUrl = apiUrl + '/%s/' + imagePath;
             const cachedUrl = await frameAPI.fetchData('slide_' + imagePath, imageUrl);
             img.src = cachedUrl;
             img.alt = imagePath;
         }
     }
-    
+
     // Fetch slides once globally, then render for this panel
-    frameAPI.fetchData('slides', apiUrl + '/slides/slides').then(slides => {
+    frameAPI.fetchData('slides', apiUrl + '/%s/slides').then(slides => {
         const state = frameAPI.getState(panel);
         const currentIndex = state[stateKey] ?? 0;
         frameAPI.setState(panel, stateKey, currentIndex);
         showSlide(currentIndex, slides);
     });
-    
+
     frameAPI.onKey(panel, (key) => {
         const slides = frameAPI.getData('slides');
         if (!slides) return;
-        
+
         const state = frameAPI.getState(panel);
         const currentIndex = state[stateKey] ?? 0;
-        
+
         if (key === 'a') showSlide(currentIndex - 1, slides);
         else if (key === 'd') showSlide(currentIndex + 1, slides);
     });
 })();
-    `)
+    `, prefix, prefix))
 	css := f.CSS(`
 .slides {
     display: flex;

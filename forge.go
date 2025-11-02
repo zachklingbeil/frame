@@ -35,7 +35,7 @@ type Forge interface {
 	UpdateIndex(*One)
 	Count() int
 	GetFrame(idx int) *One
-	AddPath(dir string)
+	AddPath(dir string) string
 	AddFile(filePath string, prefix string) error
 	Element
 	Zero(src, heading string)
@@ -119,7 +119,7 @@ func (f *forge) AddFile(filePath string, prefix string) error {
 
 // Walk directory and load files into memory, determine Content-Type based on file extension.
 // Register route using directory name as prefix: /<dirname>/<file without extension>
-func (f *forge) AddPath(dir string) {
+func (f *forge) AddPath(dir string) string {
 	// Get the base directory name to use as prefix
 	prefix := filepath.Base(dir)
 
@@ -141,6 +141,7 @@ func (f *forge) AddPath(dir string) {
 		f.addRoute(routePath, fileData, contentType)
 		return nil
 	})
+	return prefix
 }
 
 func (f *forge) getType(filename string, data []byte) string {
