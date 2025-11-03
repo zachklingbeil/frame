@@ -1,6 +1,8 @@
 package frame
 
 import (
+	"bytes"
+	"compress/gzip"
 	"fmt"
 	"html"
 	"html/template"
@@ -153,8 +155,15 @@ func (f *forge) getType(filename string, data []byte) string {
 }
 
 func (f *forge) addRoute(path string, data []byte, contentType string) {
+	var buf bytes.Buffer
+	gzipWriter := gzip.NewWriter(&buf)
+	gzipWriter.Write(data)
+	gzipWriter.Close()
+	zipped := buf.Bytes()
+
 	f.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Encoding", "gzip")
 		w.Header().Set("Content-Type", contentType)
-		w.Write(data)
+		w.Write(zipped)
 	})
 }
