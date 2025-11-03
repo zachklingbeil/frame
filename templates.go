@@ -130,16 +130,20 @@ func (f *forge) ScrollKeybinds() *One {
     requestAnimationFrame(scroll);
   };
   
+  const speeds = { w: -20, s: 20, a: -30, d: 30 };
+  
   frameAPI.onKey((k) => {
-    const speeds = { w: -20, s: 20, a: -40, d: 40 };
     if (speeds[k]) {
       if (speed === 0) scroll();
       speed = speeds[k];
     }
   });
   
+  // Stop scrolling on key release
   document.addEventListener('keyup', (e) => {
-    if ('wsad'.includes(e.key)) speed = 0;
+    if (speeds[e.key] && frameAPI.getContext().panel === panel) {
+      speed = 0;
+    }
   });
 })();
 `
