@@ -110,7 +110,7 @@ h4 {
 func (f *forge) ScrollKeybinds() *One {
 	js := `
 (function(){
-  const { panel, frameIndex, state } = frameAPI.getContext();
+  const { panel, frameIndex, state } = frameAPI.context();
   const content = panel.firstElementChild;
   const key = 'scroll_' + frameIndex;
   
@@ -119,7 +119,7 @@ func (f *forge) ScrollKeybinds() *One {
   
   // Save scroll position
   content.addEventListener('scroll', () => {
-    frameAPI.setState(key, content.scrollTop);
+    frameAPI.update(key, content.scrollTop);
   });
   
   // Smooth scrolling
@@ -150,7 +150,7 @@ func (f *forge) ScrollKeybinds() *One {
   // Stop scrolling on key release (global listener)
   document.addEventListener('keyup', (e) => {
     if (speeds[e.key]) {
-      const current = frameAPI.getContext();
+      const current = frameAPI.context();
       if (current.panel === panel && current.frameIndex === frameIndex) {
         speed = 0;
       }
@@ -167,7 +167,7 @@ func (f *forge) BuildSlides(dir string) *One {
 	img := f.Img("", "", "large")
 	js := f.JS(fmt.Sprintf(`
 (function() {
-    const { panel, state } = frameAPI.getContext();
+    const { panel, state } = frameAPI.context();
     const key = 'slideIndex';
     
     let slides = [];
@@ -175,7 +175,7 @@ func (f *forge) BuildSlides(dir string) *One {
 
     async function show(i) {
         index = ((i %% slides.length) + slides.length) %% slides.length;
-        frameAPI.setState(key, index);
+        frameAPI.update(key, index);
 
         const img = panel.querySelector('.slides img');
         if (!img) return;
