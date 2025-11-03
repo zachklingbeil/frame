@@ -124,25 +124,36 @@ func (f *forge) ScrollKeybinds() *One {
   
   // Smooth scrolling
   let speed = 0;
+  let isScrolling = false;
+  
   const scroll = () => {
-    if (speed === 0) return;
+    if (speed === 0) {
+      isScrolling = false;
+      return;
+    }
     content.scrollBy({ top: speed });
     requestAnimationFrame(scroll);
   };
   
-  const speeds = { w: -20, s: 20, a: -30, d: 30 };
+  const speeds = { w: -20, s: 20, a: -40, d: 40 };
   
   frameAPI.onKey((k) => {
     if (speeds[k]) {
-      if (speed === 0) scroll();
       speed = speeds[k];
+      if (!isScrolling) {
+        isScrolling = true;
+        scroll();
+      }
     }
   });
   
-  // Stop scrolling on key release
+  // Stop scrolling on key release (global listener)
   document.addEventListener('keyup', (e) => {
-    if (speeds[e.key] && frameAPI.getContext().panel === panel) {
-      speed = 0;
+    if (speeds[e.key]) {
+      const current = frameAPI.getContext();
+      if (current.panel === panel && current.frameIndex === frameIndex) {
+        speed = 0;
+      }
     }
   });
 })();
