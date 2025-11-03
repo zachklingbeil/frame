@@ -112,43 +112,34 @@ func (f *forge) ScrollKeybinds() *One {
 (function(){
   const { panel, frameIndex, state } = frameAPI.getContext();
   const content = panel.firstElementChild;
-  const stateKey = 'scroll_' + frameIndex;
+  const key = 'scroll_' + frameIndex;
   
-  if (state[stateKey] !== undefined) {
-    content.scrollTop = state[stateKey];
-  }
+  // Restore scroll position
+  content.scrollTop = state[key] || 0;
   
+  // Save scroll position
   content.addEventListener('scroll', () => {
-    frameAPI.setState(stateKey, content.scrollTop);
+    frameAPI.setState(key, content.scrollTop);
   });
   
-  let scrolling = 0;
-  let isAnimating = false;
-  
-  const step = () => {
-    if (!scrolling) {
-      isAnimating = false;
-      return;
-    }
-    content.scrollBy({ top: scrolling });
-    requestAnimationFrame(step);
+  // Smooth scrolling
+  let speed = 0;
+  const scroll = () => {
+    if (speed === 0) return;
+    content.scrollBy({ top: speed });
+    requestAnimationFrame(scroll);
   };
   
-  frameAPI.onKey((key) => {
-    if (key === 'w') scrolling = -20;
-    else if (key === 's') scrolling = 20;
-    else if (key === 'a') scrolling = -40;
-    else if (key === 'd') scrolling = 40;
-    else return;
-    
-    if (!isAnimating) {
-      isAnimating = true;
-      step();
+  frameAPI.onKey((k) => {
+    const speeds = { w: -20, s: 20, a: -40, d: 40 };
+    if (speeds[k]) {
+      if (speed === 0) scroll();
+      speed = speeds[k];
     }
   });
   
   document.addEventListener('keyup', (e) => {
-    if (['w','s','a','d'].includes(e.key)) scrolling = 0;
+    if ('wsad'.includes(e.key)) speed = 0;
   });
 })();
 `
@@ -161,40 +152,35 @@ func (f *forge) BuildSlides(dir string) *One {
 	img := f.Img("", "", "large")
 	js := f.JS(fmt.Sprintf(`
 (function() {
-    const { panel, frameIndex, state } = frameAPI.getContext();
-    const stateKey = 'slideIndex_' + frameIndex;
+    const { panel, state } = frameAPI.getContext();
+    const key = 'slideIndex';
+    
+    let slides = [];
+    let index = state[key] || 0;
 
-    async function showSlide(index, slides) {
-        if (!slides?.length) return;
-        const newIndex = ((index %% slides.length) + slides.length) %% slides.length;
-        frameAPI.setState(stateKey, newIndex);
+    async function show(i) {
+        index = ((i %% slides.length) + slides.length) %% slides.length;
+        frameAPI.setState(key, index);
 
         const img = panel.querySelector('.slides img');
-        if (img) {
-            const imagePath = slides[newIndex];
-            const imageUrl = apiUrl + '/%s/' + imagePath;
-            const cachedUrl = await frameAPI.fetch(imageUrl, imageUrl);
-            img.src = cachedUrl;
-            img.alt = imagePath;
-        }
+        if (!img) return;
+
+        const url = apiUrl + '/%s/' + slides[index];
+        img.src = await frameAPI.fetch(url, url);
+        img.alt = slides[index];
     }
 
-    // Fetch slides once globally, then render for this panel
-    const slidesUrl = apiUrl + '/%s/slides';
-    frameAPI.fetch(slidesUrl, slidesUrl).then(slides => {
-        const currentIndex = state[stateKey] ?? 0;
-        frameAPI.setState(stateKey, currentIndex);
-        showSlide(currentIndex, slides);
-    });
-
-    frameAPI.onKey((key) => {
-        const slidesUrl = apiUrl + '/%s/slides';
-        frameAPI.fetch(slidesUrl, slidesUrl).then(slides => {
-            const currentIndex = state[stateKey] ?? 0;
-            
-            if (key === 'a') showSlide(currentIndex - 1, slides);
-            else if (key === 'd') showSlide(currentIndex + 1, slides);
+    // Load slides and show first
+    frameAPI.fetch(apiUrl + '/%s/slides', apiUrl + '/%s/slides')
+        .then(data => {
+            slides = data;
+            show(index);
         });
+
+    // Navigate slides
+    frameAPI.onKey((k) => {
+        if (k === 'a') show(index - 1);
+        else if (k === 'd') show(index + 1);
     });
 })();
     `, prefix, prefix, prefix))
