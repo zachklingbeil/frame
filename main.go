@@ -32,29 +32,23 @@ func NewFrame(domain string) Frame {
 
 func (f *frame) HandleFrame(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-
-	// Parse frame index from header, default to 0
-	index := 0
+	current := 0
 	if v := r.Header.Get("X-Frame"); v != "" {
 		if i, err := strconv.Atoi(v); err == nil && i >= 0 && i < f.Count() {
-			index = i
+			current = i
 		}
 	}
-	// Send total frames only on frame 0
-	if index == 0 {
-		w.Header().Set("X-Frames", strconv.Itoa(f.Count()))
-	}
+	w.Header().Set("X-Frames", strconv.Itoa(f.Count()))
+	w.Header().Set("X-Frame", strconv.Itoa(current))
 
-	frame := f.GetFrame(index)
-	if frame == nil {
-		http.Error(w, "Frame not found", http.StatusNotFound)
-		return
+	frame := f.GetFrame(current)
+	if frame != nil {
+		fmt.Fprint(w, *frame)
 	}
-	fmt.Fprint(w, *frame)
 }
 
 func (f *frame) Serve() {
-	f.HandleFunc("/frame", f.HandleFrame).Methods("GET")
+	f.HandleFunc("/", f.HandleFrame).Methods("GET")
 	go func() {
 		http.ListenAndServe(":1002", f.Router)
 	}()
