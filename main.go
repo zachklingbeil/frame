@@ -32,14 +32,17 @@ func NewFrame(domain string) Frame {
 
 func (f *frame) HandleFrame(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+
 	current := 0
 	if v := r.Header.Get("X-Frame"); v != "" {
 		if i, err := strconv.Atoi(v); err == nil && i >= 0 && i < f.Count() {
 			current = i
 		}
 	}
-	w.Header().Set("X-Frames", strconv.Itoa(f.Count()))
-	w.Header().Set("X-Frame", strconv.Itoa(current))
+
+	if current == 0 {
+		w.Header().Set("X-Frames", strconv.Itoa(f.Count()))
+	}
 
 	frame := f.GetFrame(current)
 	if frame != nil {
