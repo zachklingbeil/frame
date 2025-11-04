@@ -12,17 +12,8 @@ import (
 
 type One template.HTML
 
-func NewFrame(domain string) Frame {
-	f := &frame{
-		Router: mux.NewRouter(),
-	}
-	f.Router.Use(f.Cors(domain))
-	f.Forge = NewForge(f.Router).(*forge)
-	return f
-}
-
 type Frame interface {
-	Headers(w http.ResponseWriter, r *http.Request)
+	HandleFrame(w http.ResponseWriter, r *http.Request)
 	Serve()
 	Forge
 }
@@ -32,42 +23,52 @@ type frame struct {
 	Forge
 }
 
-func (f *frame) Headers(w http.ResponseWriter, r *http.Request) {
+func NewFrame(domain string) Frame {
+	f := &frame{Router: mux.NewRouter()}
+	f.Router.Use(f.cors(domain))
+	f.Forge = NewForge(f.Router).(*forge)
+	return f
+}
+
+func (f *frame) HandleFrame(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	current := 0
+
+	// Parse frame index from header, default to 0
+	index := 0
 	if v := r.Header.Get("X-Frame"); v != "" {
 		if i, err := strconv.Atoi(v); err == nil && i >= 0 && i < f.Count() {
-			current = i
+			index = i
 		}
 	}
-	w.Header().Set("X-Frames", strconv.Itoa(f.Count()))
-	w.Header().Set("X-Frame", strconv.Itoa(current))
-
-	frame := f.GetFrame(current)
-	if frame != nil {
-		fmt.Fprint(w, *frame)
+	// Send total frames only on frame 0
+	if index == 0 {
+		w.Header().Set("X-Frames", strconv.Itoa(f.Count()))
 	}
+
+	frame := f.GetFrame(index)
+	if frame == nil {
+		http.Error(w, "Frame not found", http.StatusNotFound)
+		return
+	}
+	fmt.Fprint(w, *frame)
 }
 
 func (f *frame) Serve() {
-	f.HandleFunc("/", f.Headers).Methods("GET")
+	f.HandleFunc("/frame", f.HandleFrame).Methods("GET")
 	go func() {
 		http.ListenAndServe(":1002", f.Router)
 	}()
 }
 
-func (f *frame) Cors(domain string) mux.MiddlewareFunc {
-	var allowedOrigins []string
+func (f *frame) cors(domain string) mux.MiddlewareFunc {
+	origin := "http://localhost:1001"
 	if domain != "" {
-		allowedOrigins = []string{"https://" + domain}
-	} else {
-		allowedOrigins = []string{"http://localhost:1001"}
+		origin = "https://" + domain
 	}
+
 	return handlers.CORS(
-		handlers.AllowedHeaders([]string{
-			"Content-Type", "X-Frame", "Cache-Control", "Connection",
-		}),
-		handlers.AllowedOrigins(allowedOrigins),
+		handlers.AllowedHeaders([]string{"Content-Type", "X-Frame"}),
+		handlers.AllowedOrigins([]string{origin}),
 		handlers.AllowedMethods([]string{"GET"}),
 	)
 }
