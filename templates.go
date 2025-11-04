@@ -184,13 +184,13 @@ func (f *forge) BuildSlides(dir string) *One {
 
         const slideName = slides[index];
         const url = apiUrl + '/%s/' + slideName;
-        const { data } = await frameAPI.fetch(url);
+        const { data } = await frameAPI.fetch(slideName, url);
         img.src = data;
         img.alt = slideName;
     }
 
     // Load slides list
-    frameAPI.fetch(apiUrl + '/%s/slides')
+    frameAPI.fetch('slides-%s', apiUrl + '/%s/slides')
         .then(({ data }) => {
             slides = data;
             if (slides.length > 0) show(index);
@@ -203,7 +203,7 @@ func (f *forge) BuildSlides(dir string) *One {
         else if (k === 'd') show(index + 1);
     });
 })();
-    `, prefix, prefix))
+    `, prefix, prefix, prefix))
 	css := f.CSS(`
 .slides {
     display: flex;
