@@ -164,7 +164,7 @@ func (f *forge) ScrollKeybinds() *One {
 
 func (f *forge) BuildSlides(dir string) *One {
 	prefix := f.AddPath(dir)
-	img := f.Img("", "", "max")
+	img := f.Img("", "", "")
 	js := f.JS(fmt.Sprintf(`
 (function() {
     const { panel, frameIndex, state } = frameAPI.context();
@@ -209,6 +209,13 @@ func (f *forge) BuildSlides(dir string) *One {
     justify-content: center;
     height: 100%%;
     width: 100%%;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+.slides img {
+    max-width: 100%%;
+    max-height: 100%%;
+    object-fit: contain;
 }
     `)
 	return f.Build("slides", true, img, &css, &js)
