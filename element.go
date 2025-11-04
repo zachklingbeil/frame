@@ -133,12 +133,21 @@ func (e *element) List(items []any, ordered bool) *One {
 }
 
 func (e *element) Img(src, alt, reference string) *One {
-	styles := "width: 50vw; display: block; margin: 0 auto;"
+	var styles string
 	switch reference {
 	case "large":
 		styles = "width: 75vw; display: block; margin: 0 auto;"
+	case "medium":
+		styles = "width: 50vw; display: block; margin: 0 auto;"
 	case "small":
 		styles = "width: 25vw; display: block; margin: 0 auto;"
+	default:
+		o := One(template.HTML(fmt.Sprintf(
+			`<img src="%s" alt="%s"/>`,
+			html.EscapeString(src),
+			html.EscapeString(alt),
+		)))
+		return &o
 	}
 
 	o := One(template.HTML(fmt.Sprintf(
