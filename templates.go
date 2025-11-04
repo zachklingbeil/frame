@@ -174,23 +174,28 @@ func (f *forge) BuildSlides(dir string) *One {
     let index = state[key] || 0;
 
     async function show(i) {
+        if (slides.length === 0) return;
+        
         index = ((i %% slides.length) + slides.length) %% slides.length;
         frameAPI.update(key, index);
 
         const img = panel.querySelector('.slides img');
         if (!img) return;
 
-        const url = apiUrl + '/%s/' + slides[index];
-        img.src = await frameAPI.fetch(url, url);
-        img.alt = slides[index];
+        const slideName = slides[index];
+        const url = apiUrl + '/%s/' + slideName;
+        const { data } = await frameAPI.fetch(url);
+        img.src = data;
+        img.alt = slideName;
     }
 
-    // Load slides and show first
-    frameAPI.fetch(apiUrl + '/%s/slides', apiUrl + '/%s/slides')
-        .then(data => {
+    // Load slides list
+    frameAPI.fetch(apiUrl + '/%s/slides')
+        .then(({ data }) => {
             slides = data;
-            show(index);
-        });
+            if (slides.length > 0) show(index);
+        })
+        .catch(err => console.error('Failed to load slides:', err));
 
     // Navigate slides
     frameAPI.onKey((k) => {
@@ -198,19 +203,19 @@ func (f *forge) BuildSlides(dir string) *One {
         else if (k === 'd') show(index + 1);
     });
 })();
-    `, prefix, prefix, prefix))
+    `, prefix, prefix))
 	css := f.CSS(`
 .slides {
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 100%;
-    width: 100%;
+    height: 100%%;
+    width: 100%%;
     overflow: hidden;
 }
 .slides img {
-    max-width: 95%;
-    max-height: 95%;
+    max-width: 95%%;
+    max-height: 95%%;
     object-fit: contain;
 }
     `)
