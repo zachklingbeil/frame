@@ -34,15 +34,23 @@ func (f *frame) HandleFrame(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	current := 0
-	if v := r.Header.Get("X-Frame"); v != "" {
-		if i, err := strconv.Atoi(v); err == nil && i >= 0 && i < f.Count() {
-			current = i
-		}
-	}
 
-	if current == 0 {
+	if v := r.Header.Get("X-Frame"); v != "" {
+		i, err := strconv.Atoi(v)
+		if err != nil {
+			http.Error(w, "Invalid X-Frame header value", http.StatusBadRequest)
+			return
+		}
+		if i < 0 || i >= f.Count() {
+			http.Error(w, fmt.Sprintf("Frame %d out of range (0-%d)", i, f.Count()-1), http.StatusBadRequest)
+			return
+		}
+		current = i
+	} else {
 		w.Header().Set("X-Frames", strconv.Itoa(f.Count()))
 	}
+
+	w.Header().Set("X-Frame", strconv.Itoa(current))
 
 	frame := f.GetFrame(current)
 	if frame != nil {
@@ -51,7 +59,7 @@ func (f *frame) HandleFrame(w http.ResponseWriter, r *http.Request) {
 }
 
 func (f *frame) Serve() {
-	f.HandleFunc("/", f.HandleFrame).Methods("GET")
+	f.HandleFunc("/frame", f.HandleFrame).Methods("GET")
 	go func() {
 		http.ListenAndServe(":1002", f.Router)
 	}()
