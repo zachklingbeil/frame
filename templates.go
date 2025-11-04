@@ -211,15 +211,11 @@ func (f *forge) BuildSlides(dir string) *One {
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 100%%;
-    width: 100%%;
-    box-sizing: border-box;
-    overflow: hidden;
-}
-.slides img {
     max-width: 100%%;
     max-height: 100%%;
+    box-sizing: border-box;
     object-fit: contain;
+    overflow: hidden;
 }
     `)
 	return f.Build("slides", true, &css, &js)
