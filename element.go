@@ -136,18 +136,13 @@ func (e *element) Img(src, alt, reference string) *One {
 	var styles string
 	switch reference {
 	case "large":
-		styles = "width: 75vw; display: block; margin: 0 auto;"
+		styles = "width: 75vw; display: block; margin: 0 auto; object-fit: contain;"
 	case "medium":
-		styles = "width: 50vw; display: block; margin: 0 auto;"
+		styles = "width: 50vw; display: block; margin: 0 auto; object-fit: contain;"
 	case "small":
-		styles = "width: 25vw; display: block; margin: 0 auto;"
-	default:
-		o := One(template.HTML(fmt.Sprintf(
-			`<img src="%s" alt="%s"/>`,
-			html.EscapeString(src),
-			html.EscapeString(alt),
-		)))
-		return &o
+		styles = "width: 25vw; display: block; margin: 0 auto; object-fit: contain;"
+	case "max":
+		styles = "max-width: 95%; max-height: 95%; display: block; margin: 0 auto; object-fit: contain;"
 	}
 
 	o := One(template.HTML(fmt.Sprintf(
