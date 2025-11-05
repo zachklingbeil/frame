@@ -180,6 +180,8 @@ func (f *forge) BuildSlides(dir string) *One {
         frameAPI.update(key, index);
 
         const img = panel.querySelector('.slides img');
+        if (!img) return; // Guard against missing element
+        
         const slideName = slides[index];
         const url = apiUrl + '/%s/' + slideName;
         const { data } = await frameAPI.fetch(slideName, url);
