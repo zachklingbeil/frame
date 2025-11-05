@@ -136,13 +136,13 @@ func (e *element) Img(src, alt, reference string) *One {
 	var styles string
 	switch reference {
 	case "max":
-		styles = "width: 95vw; display: block; margin: 0 auto; object-fit: contain;"
+		styles = "width: 95vw; display: block; margin: 0 auto;"
 	case "large":
-		styles = "width: 75vw; display: block; margin: 0 auto; object-fit: contain;"
+		styles = "width: 75vw; display: block; margin: 0 auto;"
 	case "medium":
-		styles = "width: 50vw; display: block; margin: 0 auto; object-fit: contain;"
+		styles = "width: 50vw; display: block; margin: 0 auto;"
 	case "small":
-		styles = "width: 25vw; display: block; margin: 0 auto; object-fit: contain;"
+		styles = "width: 25vw; display: block; margin: 0 auto;"
 	case "":
 		styles = ""
 	}
