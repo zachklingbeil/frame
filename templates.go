@@ -168,7 +168,7 @@ func (f *forge) BuildSlides(dir string) *One {
 	js := f.JS(fmt.Sprintf(`
 (function() {
     const { panel, frameIndex, state } = frameAPI.context();
-    const key = 'slideIndex_' + frameIndex;
+    const key = 'slideIndex_' + panel.id + '_' + frameIndex;
     
     let slides = [];
     let index = state[key] || 0;
