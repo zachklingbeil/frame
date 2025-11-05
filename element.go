@@ -153,7 +153,7 @@ func (e *element) Img(src, alt, reference string) *One {
 	}
 
 	o := One(template.HTML(fmt.Sprintf(
-		`<img src="%s" alt="%s"%s/>`,
+		`<img src="%s" alt="%s"%s>`,
 		html.EscapeString(src),
 		html.EscapeString(alt),
 		styleAttr,
