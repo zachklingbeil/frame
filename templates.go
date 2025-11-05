@@ -135,7 +135,7 @@ func (f *forge) ScrollKeybinds() *One {
     requestAnimationFrame(scroll);
   };
   
-  const speeds = { w: -20, s: 20, a: -40, d: 40 };
+  const speeds = { w: -40, s: 40, a: -20, d: 20 };
   
   pathless.onKey((k) => {
     if (speeds[k]) {
