@@ -112,10 +112,10 @@ func (f *forge) ScrollKeybinds() *One {
 (function(){
   const { panel, frameIndex, state } = frameAPI.context();
   const content = panel.firstElementChild;
-  const key = 'scroll_' + frameIndex;
+  const key = 'scroll_';
   
   // Restore scroll position
-  content.scrollTop = state[key] || 0;
+  content.scrollTop = panel[frameIndex].__state[key] || 0;
   
   // Save scroll position
   content.addEventListener('scroll', () => {
@@ -168,10 +168,10 @@ func (f *forge) BuildSlides(dir string) *One {
 	js := f.JS(fmt.Sprintf(`
 (function() {
     const { panel, frameIndex, state } = frameAPI.context();
-    const key = 'slideIndex_' + panel.id + '_' + frameIndex;
+    const key = 'slideIndex_';
     
     let slides = [];
-    let index = state[key] || 0;
+    let index = panel[frameIndex].__state[key] || 0;
 
     async function show(i) {
         if (slides.length === 0) return;
