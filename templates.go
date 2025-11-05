@@ -212,9 +212,12 @@ func (f *forge) BuildSlides(dir string) *One {
     box-sizing: border-box;
     overflow: hidden;
 }
+
 .slides img {
-    max-width: 95%%;
-    max-height: 95%%;
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
     object-fit: contain;
 }
     `)
