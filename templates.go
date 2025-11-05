@@ -110,7 +110,7 @@ h4 {
 func (f *forge) ScrollKeybinds() *One {
 	js := `
 (function(){
-  const { panel, frameIndex, state } = frameAPI.context();
+  const { panel, frameIndex, state } = pathless.context();
   const content = panel.firstElementChild;
   const key = 'scroll_';
   
@@ -119,7 +119,7 @@ func (f *forge) ScrollKeybinds() *One {
   
   // Save scroll position
   content.addEventListener('scroll', () => {
-    frameAPI.update(key, content.scrollTop);
+    pathless.update(key, content.scrollTop);
   });
   
   // Smooth scrolling
@@ -137,7 +137,7 @@ func (f *forge) ScrollKeybinds() *One {
   
   const speeds = { w: -20, s: 20, a: -40, d: 40 };
   
-  frameAPI.onKey((k) => {
+  pathless.onKey((k) => {
     if (speeds[k]) {
       speed = speeds[k];
       if (!isScrolling) {
@@ -150,7 +150,7 @@ func (f *forge) ScrollKeybinds() *One {
   // Stop scrolling on key release (global listener)
   document.addEventListener('keyup', (e) => {
     if (speeds[e.key]) {
-      const current = frameAPI.context();
+      const current = pathless.context();
       if (current.panel === panel && current.frameIndex === frameIndex) {
         speed = 0;
       }
@@ -167,7 +167,7 @@ func (f *forge) BuildSlides(dir string) *One {
 	img := f.Img("", "", "")
 	js := f.JS(fmt.Sprintf(`
 (function() {
-    const { panel, frameIndex, state } = frameAPI.context();
+    const { panel, frameIndex, state } = pathless.context();
     const key = 'slideIndex_';
     
     let slides = [];
@@ -177,20 +177,20 @@ func (f *forge) BuildSlides(dir string) *One {
         if (slides.length === 0) return;
         
         index = ((i %% slides.length) + slides.length) %% slides.length;
-        frameAPI.update(key, index);
+        pathless.update(key, index);
 
         const img = panel.querySelector('.slides img');
         if (!img) return; // Guard against missing element
         
         const slideName = slides[index];
         const url = apiUrl + '/%s/' + slideName;
-        const { data } = await frameAPI.fetch(slideName, url);
+        const { data } = await pathless.fetch(slideName, url);
         img.src = data;
         img.alt = slideName;
     }
 
     // Load slides list
-    frameAPI.fetch('slides-%s', apiUrl + '/%s/slides')
+    pathless.fetch('slides-%s', apiUrl + '/%s/slides')
         .then(({ data }) => {
             slides = data;
             if (slides.length > 0) show(index);
@@ -198,7 +198,7 @@ func (f *forge) BuildSlides(dir string) *One {
         .catch(err => console.error('Failed to load slides:', err));
 
     // Navigate slides
-    frameAPI.onKey((k) => {
+    pathless.onKey((k) => {
         if (k === 'a') show(index - 1);
         else if (k === 'd') show(index + 1);
     });
