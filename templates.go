@@ -166,14 +166,14 @@ func (f *forge) BuildSlides(dir string) *One {
 	img := f.Img("", "", "")
 	js := f.JS(fmt.Sprintf(`
 (function() {
-    const { panel, frame, state } = pathless.context();
-    const key = 'slideIndex_';
+    const { panel, state } = pathless.context();
+    const key = 'slideIndex';
     
     let slides = [];
     let index = state[key] || 0;
 
     async function show(i) {
-        if (slides.length === 0) return;
+        if (!slides.length) return;
         
         index = ((i %% slides.length) + slides.length) %% slides.length;
         pathless.update(key, index);
@@ -181,22 +181,18 @@ func (f *forge) BuildSlides(dir string) *One {
         const img = panel.querySelector('.slides img');
         if (!img) return;
         
-        const slideName = slides[index];
-        const url = apiUrl + '/%s/' + slideName;
-        const { data } = await pathless.fetch(slideName, url);
+        const slide = slides[index];
+        const { data } = await pathless.fetch(apiUrl + '/%s/' + slide, { key: slide });
         img.src = data;
-        img.alt = slideName;
+        img.alt = slide;
     }
 
-    // Load slides list
-    pathless.fetch('slides-%s', apiUrl + '/%s/slides')
-        .then(({ data }) => {
-            slides = data;
-            if (slides.length > 0) show(index);
-        })
-        .catch(err => console.error('Failed to load slides:', err));
+    pathless.fetch(apiUrl + '/%s/order', { key: 'order-%s' })
+          .then(({ data }) => {
+              slides = data;
+              if (slides.length) show(index);
+          });
 
-    // Navigate slides
     pathless.onKey((k) => {
         if (k === 'a') show(index - 1);
         else if (k === 'd') show(index + 1);
@@ -210,15 +206,12 @@ func (f *forge) BuildSlides(dir string) *One {
     justify-content: center;
     width: 100%;
     height: 100%;
-    box-sizing: border-box;
     overflow: hidden;
 }
 
 .slides img {
     max-width: 95%;
     max-height: 95%;
-    width: auto;
-    height: auto;
     object-fit: contain;
 }
     `)
