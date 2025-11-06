@@ -115,15 +115,12 @@ func (f *forge) ScrollKeybinds() *One {
   const content = panel.firstElementChild;
   const key = 'scroll_';
   
-  // Restore scroll position
   content.scrollTop = state[key] || 0;
   
-  // Save scroll position
   content.addEventListener('scroll', () => {
     pathless.update(key, content.scrollTop);
   });
   
-  // Smooth scrolling
   let speed = 0;
   let isScrolling = false;
   
@@ -138,21 +135,17 @@ func (f *forge) ScrollKeybinds() *One {
   
   const speeds = { w: -40, s: 40, a: -20, d: 20 };
   
-  pathless.onKey((k) => {
+  pathless.onKey((k, isDown) => {
     if (speeds[k]) {
-      speed = speeds[k];
-      if (!isScrolling) {
-        isScrolling = true;
-        scroll();
+      if (isDown) {
+        speed = speeds[k];
+        if (!isScrolling) {
+          isScrolling = true;
+          scroll();
+        }
+      } else {
+        speed = 0;
       }
-    }
-  });
-  
-  // Stop scrolling on key release
-  document.addEventListener('keyup', (e) => {
-    if (speeds[e.key]) {
-      const { panel: p, frame: f } = pathless.context();
-      if (p === panel && f === frame) speed = 0;
     }
   });
 })();
@@ -188,7 +181,6 @@ func (f *forge) BuildSlides(dir string) *One {
         img.alt = slideName;
     }
 
-    // Load slides list
     pathless.fetch('slides-%s', apiUrl + '/%s/slides')
         .then(({ data }) => {
             slides = data;
@@ -196,10 +188,11 @@ func (f *forge) BuildSlides(dir string) *One {
         })
         .catch(err => console.error('Failed to load slides:', err));
 
-    // Navigate slides
-    pathless.onKey((k) => {
-        if (k === 'a') show(index - 1);
-        else if (k === 'd') show(index + 1);
+    pathless.onKey((k, isDown) => {
+        if (isDown) {
+            if (k === 'a') show(index - 1);
+            else if (k === 'd') show(index + 1);
+        }
     });
 })();
     `, prefix, prefix, prefix))
