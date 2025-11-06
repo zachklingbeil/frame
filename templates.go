@@ -107,15 +107,16 @@ h4 {
 	result := f.Build("text", true, &markdown, scroll, &css)
 	return result
 }
+
 func (f *forge) ScrollKeybinds() *One {
 	js := `
 (function(){
-  const { panel, frameIndex, state } = pathless.context();
+  const { panel, frame, state } = pathless.context();
   const content = panel.firstElementChild;
   const key = 'scroll_';
   
   // Restore scroll position
-  content.scrollTop = panel[frameIndex].__state[key] || 0;
+  content.scrollTop = state[key] || 0;
   
   // Save scroll position
   content.addEventListener('scroll', () => {
@@ -147,13 +148,11 @@ func (f *forge) ScrollKeybinds() *One {
     }
   });
   
-  // Stop scrolling on key release (global listener)
+  // Stop scrolling on key release
   document.addEventListener('keyup', (e) => {
     if (speeds[e.key]) {
-      const current = pathless.context();
-      if (current.panel === panel && current.frameIndex === frameIndex) {
-        speed = 0;
-      }
+      const { panel: p, frame: f } = pathless.context();
+      if (p === panel && f === frame) speed = 0;
     }
   });
 })();
@@ -167,11 +166,11 @@ func (f *forge) BuildSlides(dir string) *One {
 	img := f.Img("", "", "")
 	js := f.JS(fmt.Sprintf(`
 (function() {
-    const { panel, frameIndex, state } = pathless.context();
+    const { panel, frame, state } = pathless.context();
     const key = 'slideIndex_';
     
     let slides = [];
-    let index = panel[frameIndex].__state[key] || 0;
+    let index = state[key] || 0;
 
     async function show(i) {
         if (slides.length === 0) return;
@@ -180,7 +179,7 @@ func (f *forge) BuildSlides(dir string) *One {
         pathless.update(key, index);
 
         const img = panel.querySelector('.slides img');
-        if (!img) return; // Guard against missing element
+        if (!img) return;
         
         const slideName = slides[index];
         const url = apiUrl + '/%s/' + slideName;
