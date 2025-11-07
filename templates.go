@@ -114,15 +114,12 @@ func (f *forge) ScrollKeybinds() *One {
   const { frame, state } = pathless.context();
   const key = 'scroll_';
   
-  // Restore scroll position
   frame.scrollTop = state[key] || 0;
   
-  // Save scroll position
   frame.addEventListener('scroll', () => {
     pathless.update(key, frame.scrollTop);
   });
   
-  // Smooth scrolling
   let speed = 0;
   let isScrolling = false;
   
@@ -135,8 +132,7 @@ func (f *forge) ScrollKeybinds() *One {
     requestAnimationFrame(scroll);
   };
   
-  const speeds = { w: -40, s: 40, a: -20, d: 20 };
-  
+  const speeds = { w: -20, s: 20, a: -40, d: 40 };
   pathless.onKey((k) => {
     if (speeds[k]) {
       speed = speeds[k];
@@ -147,7 +143,6 @@ func (f *forge) ScrollKeybinds() *One {
     }
   });
   
-  // Stop scrolling on key release
   document.addEventListener('keyup', (e) => {
     if (speeds[e.key]) speed = 0;
   });

@@ -61,12 +61,12 @@ func (f *frame) HandleFrame(w http.ResponseWriter, r *http.Request) {
 func (f *frame) Serve() {
 	f.HandleFunc("/frame", f.HandleFrame).Methods("GET")
 	go func() {
-		http.ListenAndServe(":1002", f.Router)
+		http.ListenAndServe(":1001", f.Router)
 	}()
 }
 
 func (f *frame) cors(domain string) mux.MiddlewareFunc {
-	origin := "http://localhost:1001"
+	origin := "http://localhost:1000"
 	if domain != "" {
 		origin = "https://" + domain
 	}
