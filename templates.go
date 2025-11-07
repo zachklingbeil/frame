@@ -137,18 +137,19 @@ func (f *forge) ScrollKeybinds() *One {
   
   const speeds = { w: -40, s: 40, a: -20, d: 20 };
   
-  pathless.onKey((k, isDown) => {
+  pathless.onKey((k) => {
     if (speeds[k]) {
-      if (isDown) {
-        speed = speeds[k];
-        if (!isScrolling) {
-          isScrolling = true;
-          scroll();
-        }
-      } else {
-        speed = 0;
+      speed = speeds[k];
+      if (!isScrolling) {
+        isScrolling = true;
+        scroll();
       }
     }
+  });
+  
+  // Stop scrolling on key release
+  document.addEventListener('keyup', (e) => {
+    if (speeds[e.key]) speed = 0;
   });
 })();
 `
@@ -188,11 +189,9 @@ func (f *forge) BuildSlides(dir string) *One {
               if (slides.length) show(index);
           });
 
-    pathless.onKey((k, isDown) => {
-        if (isDown) {
-            if (k === 'a') show(index - 1);
-            else if (k === 'd') show(index + 1);
-        }
+    pathless.onKey((k) => {
+        if (k === 'a') show(index - 1);
+        else if (k === 'd') show(index + 1);
     });
 })();
     `, prefix, prefix, prefix))
