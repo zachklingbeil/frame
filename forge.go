@@ -42,6 +42,7 @@ type Forge interface {
 	Element
 	Zero(src, heading string)
 	Landing(src, heading, domain, github, x string)
+	TextStyle() *One
 	BuildMarkdown(file string) *One
 	BuildSlides(dir string) *One
 	ScrollKeybinds() *One
