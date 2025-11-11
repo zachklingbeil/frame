@@ -54,8 +54,8 @@ func (f *forge) Zero(src, heading, github, x string) {
 }
 
 func (f *forge) footer(github, x string) *One {
-	ghURL := fmt.Sprintf("%s/src/gh", f.ApiURL())
-	xURL := fmt.Sprintf("%s/src/x", f.ApiURL())
+	ghURL := fmt.Sprintf("%s/img/gh", f.ApiURL())
+	xURL := fmt.Sprintf("%s/img/x", f.ApiURL())
 
 	var links string
 	if github != "" {
