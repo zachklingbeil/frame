@@ -121,6 +121,12 @@ func (f *forge) BuildMarkdown(file string) *One {
 
 	markdown := One(template.HTML(html))
 	scroll := f.ScrollKeybinds()
+	css := f.TextStyle()
+	result := f.Build("text", true, &markdown, scroll, css)
+	return result
+}
+
+func (f *forge) TextStyle() *One {
 	css := f.CSS(`
 .text {
     display: flex;
@@ -162,8 +168,7 @@ h4 {
     font-size: 1em;
 }
 `)
-	result := f.Build("text", true, &markdown, scroll, &css)
-	return result
+	return &css
 }
 
 func (f *forge) ScrollKeybinds() *One {
