@@ -213,28 +213,27 @@ func (f *forge) BuildSlides(dir string) *One {
 	js := f.JS(fmt.Sprintf(`
 (function() {
     const { frame, state } = pathless.context();
-    const prefix = '%s';
-    const key = prefix;
-    
+    const navKey = 'nav.%s';
+
     let slides = [];
-    let index = state[key] || 0;
+    let index = state[navKey] || 0;
 
     async function show(i) {
         if (!slides.length) return;
-        
         index = ((i %% slides.length) + slides.length) %% slides.length;
-        pathless.update(key, index);
+        pathless.update(navKey, index);
 
         const img = frame.querySelector('img');
         if (!img) return;
-        
+
         const slide = slides[index];
-        const { data } = await pathless.fetch(apiUrl + '/' + prefix + '/' + slide, { key: prefix + '-slide' });
+        const fetchKey = '%s.' + slide;
+        const { data } = await pathless.fetch(apiUrl + '/%s/' + slide, { key: fetchKey });
         img.src = data;
         img.alt = slide;
     }
 
-    pathless.fetch(apiUrl + '/' + prefix + '/order', { key: prefix + '-order' })
+    pathless.fetch(apiUrl + '/%s/order', { key: 'order.%s' })
           .then(({ data }) => {
               slides = data;
               if (slides.length) show(index);
@@ -245,7 +244,7 @@ func (f *forge) BuildSlides(dir string) *One {
         else if (k === 'd') show(index + 1);
     });
 })();
-    `, prefix))
+    `, prefix, prefix, prefix, prefix, prefix))
 	css := f.CSS(`
 .slides {
     display: flex;
