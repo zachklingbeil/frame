@@ -41,6 +41,7 @@ type Forge interface {
 	AddFile(filePath string, prefix string) error
 	Element
 	Zero(src, heading string)
+	Landing(src, heading, githubLogo, githubLink, twitterLogo, twitterLink string)
 	BuildMarkdown(file string) *One
 	BuildSlides(dir string) *One
 	ScrollKeybinds() *One
