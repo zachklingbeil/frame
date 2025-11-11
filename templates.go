@@ -93,14 +93,9 @@ func (f *forge) Landing(src, heading, githubLogo, githubLink, twitterLogo, twitt
             margin-top: 1.5em;
         }
         .footer-icons img.icon {
-            width: 2em;
-            height: 2em;
+            width: 2.5em;
+            height: 2.5em;
             object-fit: contain;
-            opacity: 0.8;
-            transition: opacity 0.2s;
-        }
-        .footer-icons img.icon:hover {
-            opacity: 1;
         }
     `)
 	f.Build("zero", true, &css, img, h1, &footer)
