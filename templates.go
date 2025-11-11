@@ -167,17 +167,23 @@ func (f *forge) ScrollKeybinds() *One {
 	js := `
 (function(){
   const { frame, state } = pathless.context();
-  const key = 'scroll_';
-  
-  frame.scrollTop = state[key] || 0;
-  
+  const key = 'scroll';
+
+  let ratio = state[key] || 0;
+  if (frame.scrollHeight > frame.clientHeight) {
+    frame.scrollTop = ratio * (frame.scrollHeight - frame.clientHeight);
+  }
+
   frame.addEventListener('scroll', () => {
-    pathless.update(key, frame.scrollTop);
+    if (frame.scrollHeight > frame.clientHeight) {
+      ratio = frame.scrollTop / (frame.scrollHeight - frame.clientHeight);
+      pathless.update(key, ratio);
+    }
   });
-  
+
   let speed = 0;
   let isScrolling = false;
-  
+
   const scroll = () => {
     if (speed === 0) {
       isScrolling = false;
@@ -186,7 +192,7 @@ func (f *forge) ScrollKeybinds() *One {
     frame.scrollBy({ top: speed });
     requestAnimationFrame(scroll);
   };
-  
+
   const speeds = { w: -20, s: 20, a: -40, d: 40 };
   pathless.onKey((k) => {
     if (speeds[k]) {
@@ -197,7 +203,7 @@ func (f *forge) ScrollKeybinds() *One {
       }
     }
   });
-  
+
   document.addEventListener('keyup', (e) => {
     if (speeds[e.key]) speed = 0;
   });
