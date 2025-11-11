@@ -15,11 +15,17 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func NewForge(mux *mux.Router) Forge {
+func NewForge(mux *mux.Router, apiUrl string) Forge {
+	if apiUrl == "" {
+		apiUrl = "http://localhost:1001"
+	} else if !strings.HasPrefix(apiUrl, "http://") && !strings.HasPrefix(apiUrl, "https://") {
+		apiUrl = "https://" + apiUrl
+	}
 	f := &forge{
 		Element: NewElement().(*element),
 		index:   make([]*One, 0),
 		Router:  mux,
+		apiUrl:  apiUrl,
 	}
 	return f
 }
@@ -28,6 +34,7 @@ type forge struct {
 	Element
 	index []*One
 	*mux.Router
+	apiUrl string
 }
 
 type Forge interface {
@@ -36,16 +43,20 @@ type Forge interface {
 	CSS(css string) One
 	UpdateIndex(*One)
 	Count() int
+	ApiURL() string
 	GetFrame(idx int) *One
 	AddPath(dir string) string
 	AddFile(filePath string, prefix string) error
 	Element
-	Zero(src, heading string)
-	Landing(src, heading, domain, github, x string)
+	Zero(src, heading, github, x string)
 	TextStyle() *One
 	BuildMarkdown(file string) *One
 	BuildSlides(dir string) *One
 	ScrollKeybinds() *One
+}
+
+func (f *forge) ApiURL() string {
+	return f.apiUrl
 }
 
 func (f *forge) GetFrame(idx int) *One {

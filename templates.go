@@ -8,56 +8,9 @@ import (
 	"strings"
 )
 
-func (f *forge) Zero(src, heading string) {
+func (f *forge) Zero(src, heading, github, x string) {
 	img := f.Img(src, "logo", "large")
 	h1 := f.H1(heading)
-	css := f.CSS(`
-		.zero {
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			justify-content: center;
-			height: 100%;
-			width: 100%;
-			text-align: center;
-			box-sizing: border-box;
-			overflow: hidden;
-		}
-    .zero img {
-			max-width: 95%;
-			max-height: 95%;
-			width: auto;
-			height: auto;
-			display: block;
-			object-fit: contain;
-		}
-		.zero h1 {
-			color: inherit;
-			width: 100%;
-			white-space: nowrap;
-			overflow: hidden;
-			font-size: clamp(2rem, 3vw, 3rem);
-			margin: 0;
-		}
-	`)
-	f.Build("zero", true, &css, img, h1)
-}
-
-func (f *forge) Landing(src, heading, domain, github, x string) {
-	img := f.Img(src, "logo", "large")
-	h1 := f.H1(heading)
-
-	footer := One(template.HTML(fmt.Sprintf(`
-        <div class="footer-icons">
-            <a href="https://github.com/%s" target="_blank" rel="noopener">
-                <img src="%s/logos/gh" alt="GitHub" class="icon" />
-            </a>
-            <a href="https://x.com/%s" target="_blank" rel="noopener">
-                <img src="%s/logos/x" alt="Twitter" class="icon" />
-            </a>
-        </div>
-    `, github, domain, x, domain)))
-
 	css := f.CSS(`
         .zero {
             display: flex;
@@ -70,7 +23,7 @@ func (f *forge) Landing(src, heading, domain, github, x string) {
             box-sizing: border-box;
             overflow: hidden;
         }
-        .zero img {
+    .zero img {
             max-width: 95%;
             max-height: 95%;
             width: auto;
@@ -86,19 +39,59 @@ func (f *forge) Landing(src, heading, domain, github, x string) {
             font-size: clamp(2rem, 3vw, 3rem);
             margin: 0;
         }
-        .footer-icons {
+    `)
+
+	var footer *One
+	if github != "" || x != "" {
+		footer = f.footer(github, x)
+	}
+
+	if footer != nil {
+		f.Build("zero", true, &css, img, h1, footer)
+	} else {
+		f.Build("zero", true, &css, img, h1)
+	}
+}
+
+func (f *forge) footer(github, x string) *One {
+	f.AddPath("./logos")
+	ghURL := fmt.Sprintf("%s/logos/gh", f.ApiURL())
+	xURL := fmt.Sprintf("%s/logos/x", f.ApiURL())
+
+	var links string
+	if github != "" {
+		links += fmt.Sprintf(
+			`<a href="https://github.com/%s" target="_blank" rel="noopener">
+                <img src="%s" alt="GitHub" class="icon" />
+            </a>`, github, ghURL)
+	}
+	if x != "" {
+		links += fmt.Sprintf(
+			`<a href="https://x.com/%s" target="_blank" rel="noopener">
+                <img src="%s" alt="Twitter" class="icon" />
+            </a>`, x, xURL)
+	}
+
+	footer := One(template.HTML(fmt.Sprintf(`
+        <div class="footer">
+            %s
+        </div>
+    `, links)))
+
+	css := f.CSS(`
+        .footer {
             display: flex;
             justify-content: center;
             gap: 1.5em;
             margin-top: 1.5em;
         }
-        .footer-icons img.icon {
+        .footer img.icon {
             width: 2em;
             height: 2em;
             object-fit: contain;
         }
     `)
-	f.Build("zero", true, &css, img, h1, &footer)
+	return f.Build("", false, &css, &footer)
 }
 
 func (f *forge) BuildMarkdown(file string) *One {

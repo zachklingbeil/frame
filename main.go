@@ -23,10 +23,10 @@ type frame struct {
 	Forge
 }
 
-func NewFrame(domain string) Frame {
+func NewFrame(pathlessUrl, apiURL string) Frame {
 	f := &frame{Router: mux.NewRouter()}
-	f.Router.Use(f.cors(domain))
-	f.Forge = NewForge(f.Router).(*forge)
+	f.Router.Use(f.cors(pathlessUrl))
+	f.Forge = NewForge(f.Router, apiURL).(*forge)
 	return f
 }
 
@@ -65,10 +65,10 @@ func (f *frame) Serve() {
 	}()
 }
 
-func (f *frame) cors(domain string) mux.MiddlewareFunc {
+func (f *frame) cors(pathlessUrl string) mux.MiddlewareFunc {
 	origin := "http://localhost:1000"
-	if domain != "" {
-		origin = "https://" + domain
+	if pathlessUrl != "" {
+		origin = "https://" + pathlessUrl
 	}
 
 	return handlers.CORS(
