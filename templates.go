@@ -43,20 +43,20 @@ func (f *forge) Zero(src, heading string) {
 	f.Build("zero", true, &css, img, h1)
 }
 
-func (f *forge) Landing(src, heading, githubLogo, githubLink, twitterLogo, twitterLink string) {
+func (f *forge) Landing(src, heading, domain, github, x string) {
 	img := f.Img(src, "logo", "large")
 	h1 := f.H1(heading)
 
 	footer := One(template.HTML(fmt.Sprintf(`
         <div class="footer-icons">
-            <a href="%s" target="_blank" rel="noopener">
-                <img src="%s" alt="GitHub" class="icon" />
+            <a href="https://github.com/%s" target="_blank" rel="noopener">
+                <img src="%s/logos/gh" alt="GitHub" class="icon" />
             </a>
-            <a href="%s" target="_blank" rel="noopener">
-                <img src="%s" alt="Twitter" class="icon" />
+            <a href="https://x.com/%s" target="_blank" rel="noopener">
+                <img src="%s/logos/x" alt="Twitter" class="icon" />
             </a>
         </div>
-    `, githubLink, githubLogo, twitterLink, twitterLogo)))
+    `, github, domain, x, domain)))
 
 	css := f.CSS(`
         .zero {
@@ -93,8 +93,8 @@ func (f *forge) Landing(src, heading, githubLogo, githubLink, twitterLogo, twitt
             margin-top: 1.5em;
         }
         .footer-icons img.icon {
-            width: 2.5em;
-            height: 2.5em;
+            width: 2em;
+            height: 2em;
             object-fit: contain;
         }
     `)
