@@ -43,6 +43,69 @@ func (f *forge) Zero(src, heading string) {
 	f.Build("zero", true, &css, img, h1)
 }
 
+func (f *forge) Landing(src, heading, githubLogo, githubLink, twitterLogo, twitterLink string) {
+	img := f.Img(src, "logo", "large")
+	h1 := f.H1(heading)
+
+	footer := One(template.HTML(fmt.Sprintf(`
+        <div class="footer-icons">
+            <a href="%s">
+                <img src="%s" alt="GitHub" class="icon" />
+            </a>
+            <a href="%s">
+                <img src="%s" alt="Twitter" class="icon" />
+            </a>
+        </div>
+    `, githubLink, githubLogo, twitterLink, twitterLogo)))
+
+	css := f.CSS(`
+        .zero {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            width: 100%;
+            text-align: center;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        .zero img {
+            max-width: 95%;
+            max-height: 95%;
+            width: auto;
+            height: auto;
+            display: block;
+            object-fit: contain;
+        }
+        .zero h1 {
+            color: inherit;
+            width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            font-size: clamp(2rem, 3vw, 3rem);
+            margin: 0;
+        }
+        .footer-icons {
+            display: flex;
+            justify-content: center;
+            gap: 1.5em;
+            margin-top: 1.5em;
+        }
+        .footer-icons img.icon {
+            width: 2em;
+            height: 2em;
+            object-fit: contain;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+        .footer-icons img.icon:hover {
+            opacity: 1;
+        }
+    `)
+	f.Build("zero", true, &css, img, h1, &footer)
+}
+
 func (f *forge) BuildMarkdown(file string) *One {
 	content, err := os.ReadFile(file)
 	if err != nil {

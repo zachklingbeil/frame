@@ -38,6 +38,7 @@ type Element interface {
 	Time(s string) *One
 	Button(label string) *One
 	Code(code string) *One
+	CodeBlock(lang, code string) *One
 
 	Div(class string) *One
 	WrapDiv(class string, children ...*One) *One
@@ -95,6 +96,21 @@ func (e *element) Abbr(s string) *One       { return Tag("abbr", s) }
 func (e *element) Time(s string) *One       { return Tag("time", s) }
 func (e *element) Button(label string) *One { return Tag("button", label) }
 func (e *element) Code(code string) *One    { return Tag("code", code) }
+
+// CodeBlock wraps the code string in <pre><code class="language-xxx">...</code></pre> for block display.
+// Usage: e.CodeBlock("javascript", `console.log("hi")`)
+func (e *element) CodeBlock(lang, code string) *One {
+	class := ""
+	if lang != "" {
+		class = fmt.Sprintf(` class="language-%s"`, html.EscapeString(lang))
+	}
+	o := One(template.HTML(fmt.Sprintf(
+		`<pre><code%s>%s</code></pre>`,
+		class,
+		html.EscapeString(code),
+	)))
+	return &o
+}
 
 func (e *element) Div(class string) *One {
 	o := One(template.HTML(fmt.Sprintf(`<div class="%s"></div>`, html.EscapeString(class))))

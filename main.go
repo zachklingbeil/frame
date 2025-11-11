@@ -13,13 +13,13 @@ import (
 type One template.HTML
 
 type Frame interface {
-	HandleFrame(w http.ResponseWriter, r *http.Request)
+	handleFrame(w http.ResponseWriter, r *http.Request)
 	Serve()
 	Forge
 }
 
 type frame struct {
-	*mux.Router
+	Router *mux.Router
 	Forge
 }
 
@@ -30,7 +30,7 @@ func NewFrame(domain string) Frame {
 	return f
 }
 
-func (f *frame) HandleFrame(w http.ResponseWriter, r *http.Request) {
+func (f *frame) handleFrame(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	current := 0
@@ -59,7 +59,7 @@ func (f *frame) HandleFrame(w http.ResponseWriter, r *http.Request) {
 }
 
 func (f *frame) Serve() {
-	f.HandleFunc("/frame", f.HandleFrame).Methods("GET")
+	f.Router.HandleFunc("/frame", f.handleFrame).Methods("GET")
 	go func() {
 		http.ListenAndServe(":1001", f.Router)
 	}()
