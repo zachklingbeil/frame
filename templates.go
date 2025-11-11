@@ -167,17 +167,24 @@ func (f *forge) ScrollKeybinds() *One {
 	js := `
 (function(){
   const { frame, state } = pathless.context();
-  const key = 'scroll';
+  const key = 'scroll_anchor';
 
-  let ratio = state[key] || 0;
-  if (frame.scrollHeight > frame.clientHeight) {
-    frame.scrollTop = ratio * (frame.scrollHeight - frame.clientHeight);
+  // Restore scroll position to topmost visible child
+  let anchor = state[key];
+  if (anchor && frame.children[anchor.idx]) {
+    frame.scrollTop = frame.children[anchor.idx].offsetTop + anchor.offset;
   }
 
+  // Save the index and offset of the topmost visible child on scroll
   frame.addEventListener('scroll', () => {
-    if (frame.scrollHeight > frame.clientHeight) {
-      ratio = frame.scrollTop / (frame.scrollHeight - frame.clientHeight);
-      pathless.update(key, ratio);
+    const children = Array.from(frame.children);
+    const parentRect = frame.getBoundingClientRect();
+    for (let i = 0; i < children.length; i++) {
+      const rect = children[i].getBoundingClientRect();
+      if (rect.bottom > parentRect.top) {
+        pathless.update(key, { idx: i, offset: parentRect.top - rect.top });
+        break;
+      }
     }
   });
 
