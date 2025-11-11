@@ -49,10 +49,10 @@ func (f *forge) Landing(src, heading, githubLogo, githubLink, twitterLogo, twitt
 
 	footer := One(template.HTML(fmt.Sprintf(`
         <div class="footer-icons">
-            <a href="%s">
+            <a href="%s" target="_blank" rel="noopener">
                 <img src="%s" alt="GitHub" class="icon" />
             </a>
-            <a href="%s">
+            <a href="%s" target="_blank" rel="noopener">
                 <img src="%s" alt="Twitter" class="icon" />
             </a>
         </div>
