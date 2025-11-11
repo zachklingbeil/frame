@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/gorilla/mux"
@@ -72,22 +73,48 @@ func (f *forge) Build(class string, updateIndex bool, elements ...*One) *One {
 		b.WriteString(string(*el))
 	}
 
+	var htmlOut string
 	if class == "" {
-		result := One(template.HTML(b.String()))
-		if updateIndex {
-			f.UpdateIndex(&result)
-		}
-		return &result
+		htmlOut = b.String()
+	} else {
+		consolidatedContent := b.String()
+		htmlOut = fmt.Sprintf(`<div class="%s">%s</div>`, html.EscapeString(class), consolidatedContent)
 	}
-	consolidatedContent := template.HTML(b.String())
-	htmlResult := fmt.Sprintf(`<div class="%s">%s</div>`, html.EscapeString(class), string(consolidatedContent))
-	result := One(template.HTML(htmlResult))
+	cleaned := f.consolidateAssets(htmlOut)
+	result := One(template.HTML(cleaned))
 
 	if updateIndex {
 		f.UpdateIndex(&result)
 	}
-
 	return &result
+}
+
+func (f *forge) consolidateAssets(html string) string {
+	styleRe := regexp.MustCompile(`(?s)<style>(.*?)</style>`)
+	styleMatches := styleRe.FindAllStringSubmatch(html, -1)
+	var styleBlock string
+	if len(styleMatches) > 1 {
+		for _, m := range styleMatches {
+			styleBlock += m[1] + "\n"
+		}
+		html = styleRe.ReplaceAllString(html, "")
+		if styleBlock != "" {
+			html = fmt.Sprintf("<style>%s</style>%s", styleBlock, html)
+		}
+	}
+	scriptRe := regexp.MustCompile(`(?s)<script>(.*?)</script>`)
+	scriptMatches := scriptRe.FindAllStringSubmatch(html, -1)
+	var scriptBlock string
+	if len(scriptMatches) > 1 {
+		for _, m := range scriptMatches {
+			scriptBlock += m[1] + "\n"
+		}
+		html = scriptRe.ReplaceAllString(html, "")
+		if scriptBlock != "" {
+			html = fmt.Sprintf("%s<script>%s</script>", html, scriptBlock)
+		}
+	}
+	return html
 }
 
 func (f *forge) JS(js string) One {
