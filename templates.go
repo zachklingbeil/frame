@@ -213,15 +213,14 @@ func (f *forge) BuildSlides(dir string) *One {
 	js := f.JS(fmt.Sprintf(`
 (function() {
     const { frame, state } = pathless.context();
-    const navKey = 'nav.%s';
 
     let slides = [];
-    let index = state[navKey] || 0;
+    let index = state["nav"] || 0;
 
     async function show(i) {
         if (!slides.length) return;
         index = ((i %% slides.length) + slides.length) %% slides.length;
-        pathless.update(navKey, index);
+        pathless.update("nav", index);
 
         const img = frame.querySelector('img');
         if (!img) return;
@@ -244,7 +243,7 @@ func (f *forge) BuildSlides(dir string) *One {
         else if (k === 'd') show(index + 1);
     });
 })();
-    `, prefix, prefix, prefix, prefix, prefix))
+    `, prefix, prefix, prefix, prefix))
 	css := f.CSS(`
 .slides {
     display: flex;
