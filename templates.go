@@ -25,7 +25,7 @@ func (f *forge) Zero(src, heading, github, x string) {
         }
     .zero img {
             max-width: 95%;
-            max-height: 40vh;
+            max-height: 30vh;
             width: auto;
             height: auto;
             display: block;
