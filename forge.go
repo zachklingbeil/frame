@@ -49,7 +49,7 @@ type Forge interface {
 	AddPath(dir string) string
 	AddFile(filePath string, prefix string) error
 	Element
-	Zero(src, heading, github, x string)
+	Zero(heading, github, x string)
 	TextStyle() *One
 	BuildMarkdown(file string) *One
 	BuildSlides(dir string) *One

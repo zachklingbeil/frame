@@ -8,8 +8,9 @@ import (
 	"strings"
 )
 
-func (f *forge) Zero(src, heading, github, x string) {
-	img := f.Img(src, "logo", "")
+func (f *forge) Zero(heading, github, x string) {
+	logo := f.ApiURL() + "/img/logo"
+	img := f.Img(logo, "logo", "")
 	h1 := f.H1(heading)
 	css := f.CSS(`
         .zero {
