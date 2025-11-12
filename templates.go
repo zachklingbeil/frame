@@ -167,17 +167,33 @@ func (f *forge) ScrollKeybinds() *One {
 	js := `
 (function(){
   const { frame, state } = pathless.context();
-  const key = 'scroll_';
-  
-  frame.scrollTop = state[key] || 0;
-  
+  const key = 'scroll_anchor_bottom';
+
+  // Restore scroll position based on bottom anchoring
+  let anchor = state[key];
+  if (anchor && frame.children[anchor.idx]) {
+    const el = frame.children[anchor.idx];
+    frame.scrollTop = el.offsetTop + el.offsetHeight - frame.clientHeight + anchor.offset;
+  }
+
+  // Save the index and offset of the first child whose bottom is visible at the bottom
   frame.addEventListener('scroll', () => {
-    pathless.update(key, frame.scrollTop);
+    const children = Array.from(frame.children);
+    const parentRect = frame.getBoundingClientRect();
+    for (let i = 0; i < children.length; i++) {
+      const rect = children[i].getBoundingClientRect();
+      // Check if the bottom of the child is below the bottom of the container
+      if (rect.bottom > parentRect.bottom) {
+        // Save index and offset from the container's bottom to the child's bottom
+        pathless.update(key, { idx: i, offset: rect.bottom - parentRect.bottom });
+        break;
+      }
+    }
   });
-  
+
   let speed = 0;
   let isScrolling = false;
-  
+
   const scroll = () => {
     if (speed === 0) {
       isScrolling = false;
@@ -186,7 +202,7 @@ func (f *forge) ScrollKeybinds() *One {
     frame.scrollBy({ top: speed });
     requestAnimationFrame(scroll);
   };
-  
+
   const speeds = { w: -20, s: 20, a: -40, d: 40 };
   pathless.onKey((k) => {
     if (speeds[k]) {
@@ -197,7 +213,7 @@ func (f *forge) ScrollKeybinds() *One {
       }
     }
   });
-  
+
   document.addEventListener('keyup', (e) => {
     if (speeds[e.key]) speed = 0;
   });
