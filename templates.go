@@ -9,7 +9,7 @@ import (
 )
 
 func (f *forge) Zero(src, heading, github, x string) {
-	img := f.Img(src, "logo", "large")
+	img := f.Img(src, "logo", "")
 	h1 := f.H1(heading)
 	css := f.CSS(`
         .zero {
