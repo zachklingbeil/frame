@@ -168,31 +168,48 @@ func (f *forge) ScrollKeybinds() *One {
 	js := `
 (function(){
   const { frame, panel, state } = pathless.context();
-  const key = 'scrollRatio';
+  const key = 'scrollTopElem';
 
-  // Helper to restore scroll position based on ratio and panel height
+  // Helper to find the topmost visible child
+  function getTopChild() {
+    const children = Array.from(frame.children);
+    let minDist = Infinity, topIdx = 0, offset = 0;
+    children.forEach((el, i) => {
+      const dist = Math.abs(el.offsetTop - frame.scrollTop);
+      if (dist < minDist) {
+        minDist = dist;
+        topIdx = i;
+        offset = frame.scrollTop - el.offsetTop;
+      }
+    });
+    return { topIdx, offset };
+  }
+
+  // Restore scroll position based on stored top element and offset
   function restoreScroll() {
-    if (state[key] !== undefined) {
-      frame.scrollTop = state[key] * panel.clientHeight;
+    if (state[key]) {
+      const { topIdx, offset } = state[key];
+      const el = frame.children[topIdx];
+      if (el) {
+        frame.scrollTop = el.offsetTop + offset;
+      }
     }
   }
 
   // Initial restore
   restoreScroll();
 
-  // Save scroll position as a ratio on scroll
+  // Save scroll position on scroll
   frame.addEventListener('scroll', () => {
-    const ratio = frame.scrollTop / panel.clientHeight;
-    pathless.update(key, ratio);
+    pathless.update(key, getTopChild());
   });
 
-  // Restore scroll on window resize (covers layout changes too)
+  // Restore scroll on resize/layout change
   window.addEventListener('resize', restoreScroll);
 
-  // Keyboard scroll logic
+  // Keyboard scroll logic (unchanged)
   let speed = 0;
   let isScrolling = false;
-
   const scroll = () => {
     if (speed === 0) {
       isScrolling = false;
@@ -201,7 +218,6 @@ func (f *forge) ScrollKeybinds() *One {
     frame.scrollBy({ top: speed });
     requestAnimationFrame(scroll);
   };
-
   const speeds = { w: -20, s: 20, a: -40, d: 40 };
   pathless.onKey((k) => {
     k = k.toLowerCase();
@@ -213,7 +229,6 @@ func (f *forge) ScrollKeybinds() *One {
       }
     }
   });
-
   document.addEventListener('keyup', (e) => {
     if (speeds[e.key.toLowerCase()]) speed = 0;
   });
