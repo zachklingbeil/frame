@@ -167,66 +167,67 @@ h4 {
 func (f *forge) ScrollKeybinds() *One {
 	js := `
 (function(){
-  const { frame, panel, state } = pathless.context();
+  const { frame, state } = pathless.context();
   const key = 'scrollTopElem';
+  let lastLayout = pathless.context().layout.slice();
 
-  // Helper to find the topmost visible child
+  function arraysEqual(a, b) {
+    if (!a || !b || a.length !== b.length) return false;
+    for (let i = 0; i < a.length; ++i) if (a[i] !== b[i]) return false;
+    return true;
+  }
+
+  function getElements() {
+    return Array.from(frame.children);
+  }
+
   function getTopChild() {
-    const children = Array.from(frame.children);
     let minDist = Infinity, topIdx = 0, offset = 0;
-    children.forEach((el, i) => {
-      const dist = Math.abs(el.offsetTop - frame.scrollTop);
+    const elements = getElements();
+    for (let i = 0; i < elements.length; i++) {
+      const el = elements[i], dist = Math.abs(el.offsetTop - frame.scrollTop);
       if (dist < minDist) {
         minDist = dist;
         topIdx = i;
         offset = frame.scrollTop - el.offsetTop;
       }
-    });
+    }
     return { topIdx, offset };
   }
 
-  // Restore scroll position based on stored top element and offset
-  function restoreScroll() {
-    if (state[key]) {
-      const { topIdx, offset } = state[key];
-      const el = frame.children[topIdx];
-      if (el) {
-        frame.scrollTop = el.offsetTop + offset;
-      }
+  function restoreScroll(force) {
+    const currentLayout = pathless.context().layout;
+    if (!force && arraysEqual(currentLayout, lastLayout)) return;
+    lastLayout = currentLayout.slice();
+    const elements = getElements();
+    const saved = state[key];
+    if (saved && elements[saved.topIdx]) {
+      frame.scrollTop = elements[saved.topIdx].offsetTop + saved.offset;
     }
   }
 
   // Initial restore
-  restoreScroll();
+  restoreScroll(true);
 
   // Save scroll position on scroll
-  frame.addEventListener('scroll', () => {
-    pathless.update(key, getTopChild());
-  });
+  frame.addEventListener('scroll', () => pathless.update(key, getTopChild()));
 
-  // Restore scroll on resize/layout change
-  window.addEventListener('resize', restoreScroll);
+  // Monitor for layout changes and restore scroll if needed
+  setInterval(() => restoreScroll(false), 150);
 
-  // Keyboard scroll logic (unchanged)
-  let speed = 0;
-  let isScrolling = false;
-  const scroll = () => {
-    if (speed === 0) {
-      isScrolling = false;
-      return;
-    }
+  // Keyboard scroll logic
+  let speed = 0, isScrolling = false;
+  const speeds = { w: -20, s: 20, a: -40, d: 40 };
+  function scroll() {
+    if (speed === 0) { isScrolling = false; return; }
     frame.scrollBy({ top: speed });
     requestAnimationFrame(scroll);
-  };
-  const speeds = { w: -20, s: 20, a: -40, d: 40 };
+  }
   pathless.onKey((k) => {
     k = k.toLowerCase();
     if (speeds[k]) {
       speed = speeds[k];
-      if (!isScrolling) {
-        isScrolling = true;
-        scroll();
-      }
+      if (!isScrolling) { isScrolling = true; scroll(); }
     }
   });
   document.addEventListener('keyup', (e) => {
