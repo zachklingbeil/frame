@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
+	"io"
+	"net/http"
 	"os"
 	"strings"
 )
@@ -94,13 +96,29 @@ func (f *forge) footer(github, x string) *One {
 	return f.Build("", false, &css, &footer)
 }
 
-func (f *forge) BuildMarkdown(file string) *One {
-	content, err := os.ReadFile(file)
-	if err != nil {
-		empty := One("")
-		return &empty
-	}
+func (f *forge) BuildMarkdown(source string) *One {
+	var content []byte
+	var err error
 
+	if strings.HasPrefix(source, "http://") || strings.HasPrefix(source, "https://") {
+		resp, err := http.Get(source)
+		if err != nil {
+			empty := One("")
+			return &empty
+		}
+		defer resp.Body.Close()
+		content, err = io.ReadAll(resp.Body)
+		if err != nil {
+			empty := One("")
+			return &empty
+		}
+	} else {
+		content, err = os.ReadFile(source)
+		if err != nil {
+			empty := One("")
+			return &empty
+		}
+	}
 	var buf bytes.Buffer
 	if err := (*f.Markdown()).Convert(content, &buf); err != nil {
 		empty := One("")
