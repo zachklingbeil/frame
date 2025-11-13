@@ -51,6 +51,7 @@ type Forge interface {
 	Element
 	Zero(heading, github, x string)
 	TextStyle() *One
+	README(file string) *One
 	BuildMarkdown(file string) *One
 	BuildSlides(dir string) *One
 	ScrollKeybinds() *One
