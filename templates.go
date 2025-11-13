@@ -155,61 +155,133 @@ func (f *forge) BuildMarkdown(file string) *One {
 func (f *forge) TextStyle() *One {
 	css := f.CSS(`
 .text {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    overflow-y: auto;
-    scroll-behavior: auto;
-    height: 100%;
+	display: flex;
+	flex-direction: column;
+	overflow-y: auto;
+	height: 100%;
+	padding: max(2vw, 1.5em);
+	max-width: 70vw;
+	margin: 0 auto;
+	box-sizing: border-box;
+	color: #f3f3f3;
 }
 .text img {
-    max-width: 90%;
-    max-height: 90%;
-    object-fit: contain;
-    display: block;
-    margin: 1em auto;
+	max-width: 90%;
+	max-height: 60vh;
+	object-fit: contain;
+	display: block;
+	margin: 1.2em auto;
+	border-radius: 0.4em;
 }
-p {
-    font-size: 1.2em;
-    line-height: 1.5;
-    margin: 1em;
-    justify-content: flex-start;
-    text-align: left;
+.text h1,
+.text h2,
+.text h3,
+.text h4 {
+	font-weight: 700;
+	line-height: 1.2;
+	margin-top: 1.5em;
+	margin-bottom: 0.5em;
+	text-align: center;
+	letter-spacing: 0.01em;
 }
-
-h1 {
-    font-size: 3.5em;
-    margin-top: 0.5em;
-    text-align: center;
+.text h1 {
+	font-size: 3em;
+	margin-top: 1em;
+	margin-bottom: 0.3em;
 }
-
-h2 {
-    font-size: 2em;
-    border-bottom: 1px solid #33333344;
-    padding-bottom: 0.2em;
-    margin-top: 1.5em;
-    margin-bottom: 0.75em;
-    text-align: left;
+.text h2 {
+	font-size: 2em;
+	border-bottom: 2px solid #ffffff33;
+	padding-bottom: 0.2em;
 }
-
-h3 {
-    font-size: 1.5em;
-    margin-top: 1.2em;
-    margin-bottom: 0.5em;
-    text-align: left;
-    font-weight: 600;
+.text h3 {
+	font-size: 1.3em;
+	text-align: left;
 }
-
-h4 {
-    font-size: 1em;
-    margin-top: 1em;
-    margin-bottom: 0.5em;
-    text-align: left;
-    font-weight: 600;
+.text h4 {
+	font-size: 1em;
+	text-align: left;
 }
 
-.text > *:not(h1):not(h2):not(h3):not(h4) {
-    align-self: stretch;
+.text p {
+	font-size: 1.15em;
+	margin: 1em 0;
+	text-align: left;
+	line-height: 1.7;
+}
+.text h1 + p,
+.text h2 + p {
+	text-align: center;
+	margin-top: 0;
+}
+
+.text ul,
+.text ol {
+	margin: 0 0 1.2em 2em;
+	padding-left: 1.2em;
+	list-style-position: outside;
+	text-align: left;
+}
+.text ul li,
+.text ol li {
+	margin-bottom: 0.4em;
+}
+.text code {
+	border: 1px solid #ffffff58;
+	padding: 0.2em 0.5em;
+	border-radius: 0.3em;
+	font-size: 0.98em;
+	font-family: 'Fira Mono', 'Consolas', monospace;
+}
+.text pre {
+	margin-left: auto;
+	margin-right: auto;
+	display: flex;
+	justify-content: center;
+	max-width: 90vw;
+	width: fit-content;
+}
+.text pre code {
+	display: block;
+	background: none;
+	border: none;
+	color: inherit;
+	padding: 0;
+	border-radius: 0;
+	font-size: 1em;
+	white-space: pre;
+	overflow-x: auto;
+	max-width: 100vw;
+}
+.text table {
+	border-collapse: separate;
+	border-spacing: 0;
+	margin: 2em auto;
+	width: auto;
+	min-width: 10%;
+	max-width: 90%;
+	font-size: 1em;
+	border-radius: 0.4em;
+	overflow: hidden;
+	background: #202020;
+	box-shadow: 0 2px 12px #0005;
+}
+.text th,
+.text td {
+	border: 1px solid #333;
+	padding: 0.7em 1.2em;
+	text-align: center;
+	vertical-align: middle;
+}
+.text th {
+	font-weight: 700;
+	background: #232323;
+}
+.text tr:nth-child(even) td {
+	background: #181818;
+}
+.text tr:hover td {
+	background: #232323;
 }
 `)
 	return &css
