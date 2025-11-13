@@ -94,6 +94,28 @@ func (f *forge) footer(github, x string) *One {
 	return f.Build("", false, &css, &footer)
 }
 
+func (f *forge) README(file string) *One {
+	content, err := os.ReadFile(file)
+	if err != nil {
+		empty := One("")
+		return &empty
+	}
+
+	var buf bytes.Buffer
+	if err := (*f.Markdown()).Convert(content, &buf); err != nil {
+		empty := One("")
+		return &empty
+	}
+	html := `
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.5.1/github-markdown-dark.min.css">
+<div class="markdown-body">` + buf.String() + `</div>`
+
+	markdown := One(template.HTML(html))
+	scroll := f.ScrollKeybinds()
+	result := f.Build("text", true, &markdown, scroll)
+	return result
+}
+
 func (f *forge) BuildMarkdown(file string) *One {
 	content, err := os.ReadFile(file)
 	if err != nil {
