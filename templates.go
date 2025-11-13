@@ -167,18 +167,32 @@ h4 {
 func (f *forge) ScrollKeybinds() *One {
 	js := `
 (function(){
-  const { frame, state } = pathless.context();
-  const key = 'scroll';
-  
-  frame.scrollTop = state[key] || 0;
-  
+  const { frame, panel, state } = pathless.context();
+  const key = 'scrollRatio';
+
+  // Helper to restore scroll position based on ratio and panel height
+  function restoreScroll() {
+    if (state[key] !== undefined) {
+      frame.scrollTop = state[key] * panel.clientHeight;
+    }
+  }
+
+  // Initial restore
+  restoreScroll();
+
+  // Save scroll position as a ratio on scroll
   frame.addEventListener('scroll', () => {
-    pathless.update(key, frame.scrollTop);
+    const ratio = frame.scrollTop / panel.clientHeight;
+    pathless.update(key, ratio);
   });
-  
+
+  // Restore scroll on window resize (covers layout changes too)
+  window.addEventListener('resize', restoreScroll);
+
+  // Keyboard scroll logic
   let speed = 0;
   let isScrolling = false;
-  
+
   const scroll = () => {
     if (speed === 0) {
       isScrolling = false;
@@ -187,9 +201,10 @@ func (f *forge) ScrollKeybinds() *One {
     frame.scrollBy({ top: speed });
     requestAnimationFrame(scroll);
   };
-  
+
   const speeds = { w: -20, s: 20, a: -40, d: 40 };
   pathless.onKey((k) => {
+    k = k.toLowerCase();
     if (speeds[k]) {
       speed = speeds[k];
       if (!isScrolling) {
@@ -198,9 +213,9 @@ func (f *forge) ScrollKeybinds() *One {
       }
     }
   });
-  
+
   document.addEventListener('keyup', (e) => {
-    if (speeds[e.key]) speed = 0;
+    if (speeds[e.key.toLowerCase()]) speed = 0;
   });
 })();
 `
@@ -216,30 +231,35 @@ func (f *forge) BuildSlides(dir string) *One {
     const { frame, state } = pathless.context();
 
     let slides = [];
-    let index = state["nav"] || 0;
+    let index = state.nav || 0;
 
     async function show(i) {
         if (!slides.length) return;
         index = ((i %% slides.length) + slides.length) %% slides.length;
         pathless.update("nav", index);
 
-        const img = frame.querySelector('img');
-        if (!img) return;
+        const imgEl = frame.querySelector('img');
+        if (!imgEl) return;
 
         const slide = slides[index];
         const fetchKey = '%s.' + slide;
-        const { data } = await pathless.fetch(apiUrl + '/%s/' + slide, { key: fetchKey });
-        img.src = data;
-        img.alt = slide;
+        try {
+            const { data } = await pathless.fetch(apiUrl + '/%s/' + slide, { key: fetchKey });
+            imgEl.src = data;
+            imgEl.alt = slide;
+        } catch (e) {
+            imgEl.alt = "Failed to load image";
+        }
     }
 
-    pathless.fetch(apiUrl + '/%s/order', { key: 'order.%s' })
-          .then(({ data }) => {
-              slides = data;
-              if (slides.length) show(index);
-          });
+    pathless.fetch(apiUrl + '/%s/order', { key: '%s.order' })
+        .then(({ data }) => {
+            slides = data || [];
+            if (slides.length) show(index);
+        });
 
     pathless.onKey((k) => {
+        k = k.toLowerCase();
         if (k === 'a') show(index - 1);
         else if (k === 'd') show(index + 1);
     });
@@ -254,7 +274,6 @@ func (f *forge) BuildSlides(dir string) *One {
     height: 100%;
     overflow: hidden;
 }
-
 .slides img {
     max-width: 95%;
     max-height: 95%;
