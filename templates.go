@@ -168,60 +168,39 @@ func (f *forge) ScrollKeybinds() *One {
 	js := `
 (function(){
   const { frame, state } = pathless.context();
-  const key = 'scrollTopElem';
-
-  function getElements() {
-    return Array.from(frame.children);
-  }
-
-  function getTopChild() {
-    let minDist = Infinity, topIdx = 0, offset = 0;
-    const elements = getElements();
-    for (let i = 0; i < elements.length; i++) {
-      const el = elements[i], dist = Math.abs(el.offsetTop - frame.scrollTop);
-      if (dist < minDist) {
-        minDist = dist;
-        topIdx = i;
-        offset = frame.scrollTop - el.offsetTop;
-      }
+  const key = 'scroll';
+  
+  frame.scrollTop = state[key] || 0;
+  
+  frame.addEventListener('scroll', () => {
+    pathless.update(key, frame.scrollTop);
+  });
+  
+  let speed = 0;
+  let isScrolling = false;
+  
+  const scroll = () => {
+    if (speed === 0) {
+      isScrolling = false;
+      return;
     }
-    return { topIdx, offset };
-  }
-
-  function restoreScroll() {
-    const elements = getElements();
-    const saved = state[key];
-    if (saved && elements[saved.topIdx]) {
-      frame.scrollTop = elements[saved.topIdx].offsetTop + saved.offset;
-    }
-  }
-
-  // Initial restore
-  restoreScroll();
-
-  // Save scroll position on scroll
-  frame.addEventListener('scroll', () => pathless.update(key, getTopChild()));
-
-  // React immediately to layout changes
-  document.addEventListener('layoutchange', restoreScroll);
-
-  // Keyboard scroll logic
-  let speed = 0, isScrolling = false;
-  const speeds = { w: -20, s: 20, a: -40, d: 40 };
-  function scroll() {
-    if (speed === 0) { isScrolling = false; return; }
     frame.scrollBy({ top: speed });
     requestAnimationFrame(scroll);
-  }
+  };
+  
+  const speeds = { w: -20, s: 20, a: -40, d: 40 };
   pathless.onKey((k) => {
-    k = k.toLowerCase();
     if (speeds[k]) {
       speed = speeds[k];
-      if (!isScrolling) { isScrolling = true; scroll(); }
+      if (!isScrolling) {
+        isScrolling = true;
+        scroll();
+      }
     }
   });
+  
   document.addEventListener('keyup', (e) => {
-    if (speeds[e.key.toLowerCase()]) speed = 0;
+    if (speeds[e.key]) speed = 0;
   });
 })();
 `
