@@ -158,17 +158,31 @@ func (f *forge) TextStyle() *One {
     display: block;
     margin: 1em auto;
 }
+table {
+    border-collapse: collapse;
+    margin: 1.5em auto;
+    width: 100%;
+    max-width: 90%;
+    font-size: 1em;
+}
+th, td {
+    border: 1px solid #d0d7de;
+    padding: 0.5em 1em;
+    text-align: left;
+}
+th {
+    font-weight: 600;
+}
+    
 p {
     font-size: 1.2em;
     line-height: 1.5;
     margin: 1em;
     justify-content: center;
 }
-
 h2, h3, h4, code {
     margin: 0.5em;
 }
-
 h1 {
     font-size: 3.5em;
     margin-top: 0.5em;
