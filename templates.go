@@ -158,43 +158,47 @@ func (f *forge) TextStyle() *One {
     display: block;
     margin: 1em auto;
 }
-table {
-    border-collapse: collapse;
-    margin: 1.5em auto;
-    width: 100%;
-    max-width: 90%;
-    font-size: 1em;
-}
-th, td {
-    border: 1px solid #d0d7de;
-    padding: 0.5em 1em;
-    text-align: left;
-}
-th {
-    font-weight: 600;
-}
-    
 p {
     font-size: 1.2em;
     line-height: 1.5;
     margin: 1em;
-    justify-content: center;
+    justify-content: flex-start;
+    text-align: left;
 }
-h2, h3, h4, code {
-    margin: 0.5em;
-}
+
 h1 {
     font-size: 3.5em;
     margin-top: 0.5em;
+    text-align: center;
 }
+
 h2 {
     font-size: 2em;
+    border-bottom: 1px solid #33333344;
+    padding-bottom: 0.2em;
+    margin-top: 1.5em;
+    margin-bottom: 0.75em;
+    text-align: left;
 }
+
 h3 {
     font-size: 1.5em;
+    margin-top: 1.2em;
+    margin-bottom: 0.5em;
+    text-align: left;
+    font-weight: 600;
 }
+
 h4 {
     font-size: 1em;
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+    text-align: left;
+    font-weight: 600;
+}
+
+.text > *:not(h1):not(h2):not(h3):not(h4) {
+    align-self: stretch;
 }
 `)
 	return &css
