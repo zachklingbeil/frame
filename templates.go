@@ -169,13 +169,6 @@ func (f *forge) ScrollKeybinds() *One {
 (function(){
   const { frame, state } = pathless.context();
   const key = 'scrollTopElem';
-  let lastLayout = pathless.context().layout.slice();
-
-  function arraysEqual(a, b) {
-    if (!a || !b || a.length !== b.length) return false;
-    for (let i = 0; i < a.length; ++i) if (a[i] !== b[i]) return false;
-    return true;
-  }
 
   function getElements() {
     return Array.from(frame.children);
@@ -195,10 +188,7 @@ func (f *forge) ScrollKeybinds() *One {
     return { topIdx, offset };
   }
 
-  function restoreScroll(force) {
-    const currentLayout = pathless.context().layout;
-    if (!force && arraysEqual(currentLayout, lastLayout)) return;
-    lastLayout = currentLayout.slice();
+  function restoreScroll() {
     const elements = getElements();
     const saved = state[key];
     if (saved && elements[saved.topIdx]) {
@@ -207,13 +197,13 @@ func (f *forge) ScrollKeybinds() *One {
   }
 
   // Initial restore
-  restoreScroll(true);
+  restoreScroll();
 
   // Save scroll position on scroll
   frame.addEventListener('scroll', () => pathless.update(key, getTopChild()));
 
-  // Monitor for layout changes and restore scroll if needed
-  setInterval(() => restoreScroll(false), 150);
+  // React immediately to layout changes
+  document.addEventListener('layoutchange', restoreScroll);
 
   // Keyboard scroll logic
   let speed = 0, isScrolling = false;
