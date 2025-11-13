@@ -94,11 +94,19 @@ func (f *forge) footer(github, x string) *One {
 	return f.Build("", false, &css, &footer)
 }
 
-func (f *forge) README(file string) *One {
-	content, err := os.ReadFile(file)
+func (f *forge) BuildMarkdownTest(mdPath string, cssPath string) *One {
+	content, err := os.ReadFile(mdPath)
 	if err != nil {
 		empty := One("")
 		return &empty
+	}
+
+	cssContent := ""
+	if cssPath != "" {
+		cssBytes, err := os.ReadFile(cssPath)
+		if err == nil {
+			cssContent = string(cssBytes)
+		}
 	}
 
 	var buf bytes.Buffer
@@ -106,13 +114,16 @@ func (f *forge) README(file string) *One {
 		empty := One("")
 		return &empty
 	}
-	html := `
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.5.1/github-markdown-dark.min.css">
-<div class="markdown-body">` + buf.String() + `</div>`
+	html := buf.String()
+	html = strings.ReplaceAll(html, "<p><img", "<img")
+	html = strings.ReplaceAll(html, "\"></p>", "\">")
+	html = strings.ReplaceAll(html, "\" /></p>", "\" />")
+	html = strings.ReplaceAll(html, "\"/></p>", "\"/>")
 
+	cssBlock := f.CSS(cssContent)
 	markdown := One(template.HTML(html))
 	scroll := f.ScrollKeybinds()
-	result := f.Build("text", true, &markdown, scroll)
+	result := f.Build("text", true, &markdown, scroll, &cssBlock)
 	return result
 }
 
@@ -306,4 +317,26 @@ func (f *forge) BuildSlides(dir string) *One {
 }
     `)
 	return f.Build("slides", true, img, &css, &js)
+}
+
+func (f *forge) README(file string) *One {
+	content, err := os.ReadFile(file)
+	if err != nil {
+		empty := One("")
+		return &empty
+	}
+
+	var buf bytes.Buffer
+	if err := (*f.Markdown()).Convert(content, &buf); err != nil {
+		empty := One("")
+		return &empty
+	}
+	html := `
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.5.1/github-markdown-dark.min.css">
+<div class="markdown-body">` + buf.String() + `</div>`
+
+	markdown := One(template.HTML(html))
+	scroll := f.ScrollKeybinds()
+	result := f.Build("text", true, &markdown, scroll)
+	return result
 }
