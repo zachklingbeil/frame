@@ -94,40 +94,7 @@ func (f *forge) footer(github, x string) *One {
 	return f.Build("", false, &css, &footer)
 }
 
-func (f *forge) BuildMarkdownTest(mdPath string, cssPath string) *One {
-	content, err := os.ReadFile(mdPath)
-	if err != nil {
-		empty := One("")
-		return &empty
-	}
-
-	cssContent := ""
-	if cssPath != "" {
-		cssBytes, err := os.ReadFile(cssPath)
-		if err == nil {
-			cssContent = string(cssBytes)
-		}
-	}
-
-	var buf bytes.Buffer
-	if err := (*f.Markdown()).Convert(content, &buf); err != nil {
-		empty := One("")
-		return &empty
-	}
-	html := buf.String()
-	html = strings.ReplaceAll(html, "<p><img", "<img")
-	html = strings.ReplaceAll(html, "\"></p>", "\">")
-	html = strings.ReplaceAll(html, "\" /></p>", "\" />")
-	html = strings.ReplaceAll(html, "\"/></p>", "\"/>")
-
-	cssBlock := f.CSS(cssContent)
-	markdown := One(template.HTML(html))
-	scroll := f.ScrollKeybinds()
-	result := f.Build("text", true, &markdown, scroll, &cssBlock)
-	return result
-}
-
-func (f *forge) BuildMarkdown(file string) *One {
+func (f *forge) README(file string, cssPath string) *One {
 	content, err := os.ReadFile(file)
 	if err != nil {
 		empty := One("")
@@ -139,6 +106,7 @@ func (f *forge) BuildMarkdown(file string) *One {
 		empty := One("")
 		return &empty
 	}
+
 	html := buf.String()
 	html = strings.ReplaceAll(html, "<p><img", "<img")
 	html = strings.ReplaceAll(html, "\"></p>", "\">")
@@ -147,7 +115,19 @@ func (f *forge) BuildMarkdown(file string) *One {
 
 	markdown := One(template.HTML(html))
 	scroll := f.ScrollKeybinds()
-	css := f.TextStyle()
+
+	var css *One
+	if cssPath == "" {
+		css = f.TextStyle()
+	} else {
+		cssContent := ""
+		if b, err := os.ReadFile(cssPath); err == nil {
+			cssContent = string(b)
+		}
+		c := f.CSS(cssContent)
+		css = &c
+	}
+
 	result := f.Build("text", true, &markdown, scroll, css)
 	return result
 }
@@ -389,26 +369,4 @@ func (f *forge) BuildSlides(dir string) *One {
 }
     `)
 	return f.Build("slides", true, img, &css, &js)
-}
-
-func (f *forge) README(file string) *One {
-	content, err := os.ReadFile(file)
-	if err != nil {
-		empty := One("")
-		return &empty
-	}
-
-	var buf bytes.Buffer
-	if err := (*f.Markdown()).Convert(content, &buf); err != nil {
-		empty := One("")
-		return &empty
-	}
-	html := `
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.5.1/github-markdown-dark.min.css">
-<div class="markdown-body">` + buf.String() + `</div>`
-
-	markdown := One(template.HTML(html))
-	scroll := f.ScrollKeybinds()
-	result := f.Build("text", true, &markdown, scroll)
-	return result
 }
