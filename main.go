@@ -32,26 +32,16 @@ func NewFrame(pathlessUrl, apiURL string) Frame {
 
 func (f *frame) handleFrame(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("X-Frames", strconv.Itoa(f.Count()))
 
 	current := 0
-
 	if v := r.Header.Get("X-Frame"); v != "" {
 		i, err := strconv.Atoi(v)
-		if err != nil {
-			http.Error(w, "Invalid X-Frame header value", http.StatusBadRequest)
-			return
+		if err == nil && i >= 0 && i < f.Count() {
+			current = i
 		}
-		if i < 0 || i >= f.Count() {
-			http.Error(w, fmt.Sprintf("Frame %d out of range (0-%d)", i, f.Count()-1), http.StatusBadRequest)
-			return
-		}
-		current = i
-	} else {
-		w.Header().Set("X-Frames", strconv.Itoa(f.Count()))
 	}
-
 	w.Header().Set("X-Frame", strconv.Itoa(current))
-
 	frame := f.GetFrame(current)
 	if frame != nil {
 		fmt.Fprint(w, *frame)
