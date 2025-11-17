@@ -36,17 +36,18 @@ func (f *forge) Keyboard() *One {
 
 	css := f.CSS(`
 .keyboard {
-    position: fixed;
-    left: 2em;
-    bottom: 7em;
-    z-index: 11;
     display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
     background: #111;
     border-radius: 0.75em;
     box-shadow: 0 0.25em 1.5em #000a;
     padding: 1em;
-    width: 20em;
     max-width: 90vw;
+    max-height: 90vh;
+    z-index: 11;
 }
 .grid {
     display: grid;
