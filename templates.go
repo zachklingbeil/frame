@@ -20,6 +20,7 @@ func (f *forge) Keyboard() *One {
   ];
   frame.innerHTML = '<div class="grid"></div>';
   const grid = frame.querySelector('.grid');
+  const keyDivs = {};
   for (let i = 0; i < keyOrder.length; i++) {
     const key = keyOrder[i];
     const d = document.createElement('div');
@@ -28,9 +29,31 @@ func (f *forge) Keyboard() *One {
       d.textContent = key.toUpperCase();
       const entry = pathless.keybinds().get(key);
       if (entry && entry.style) d.style.cssText += ';' + entry.style;
+      keyDivs[key] = d;
+      // Set initial pressed state
+      if (entry && entry.pressed) d.classList.add('pressed');
     }
     grid.appendChild(d);
   }
+
+  // Listen for key state changes and update .pressed class
+  function updatePressed() {
+    for (const key in keyDivs) {
+      const entry = pathless.keybinds().get(key);
+      if (entry && entry.pressed) {
+        keyDivs[key].classList.add('pressed');
+      } else {
+        keyDivs[key].classList.remove('pressed');
+      }
+    }
+  }
+
+  // Listen for key events globally and update UI
+  window.addEventListener('keydown', updatePressed);
+  window.addEventListener('keyup', updatePressed);
+
+  // Also update on load in case keys are already pressed
+  updatePressed();
 })();
 `)
 
