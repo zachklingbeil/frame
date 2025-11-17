@@ -13,23 +13,17 @@ func (f *forge) Keyboard() *One {
 (function(){
   const panel = pathless.context().panel;
   const keyMap = pathless.keybinds();
-
-  // Define the order/layout of keys you want to show
   const keyOrder = [
     'Tab', '', '',
     '1', '2', '3',
     'q', 'w', 'e',
     'a', 's', 'd'
   ];
-
-  // Create grid container
+  const keyboard = document.createElement('div');
+  keyboard.className = 'keyboard';
   const grid = document.createElement('div');
   grid.className = 'grid';
-
-  // Map for key divs
   const keyDivs = {};
-
-  // Render keys
   keyOrder.forEach(k => {
     const div = document.createElement('div');
     div.className = 'key';
@@ -41,12 +35,9 @@ func (f *forge) Keyboard() *One {
     }
     grid.appendChild(div);
   });
-
-  // Clear and append
+  keyboard.appendChild(grid);
   panel.innerHTML = '';
-  panel.appendChild(grid);
-
-  // Animation loop to update pressed state
+  panel.appendChild(keyboard);
   function updateKeys() {
     for (const k in keyDivs) {
       const entry = keyMap.get(k);
@@ -71,7 +62,6 @@ func (f *forge) Keyboard() *One {
     padding: 1em;
     max-width: 90vw;
     max-height: 90vh;
-    z-index: 11;
 }
 .grid {
     display: grid;
@@ -101,7 +91,7 @@ func (f *forge) Keyboard() *One {
     pointer-events: none;
 }
 `)
-	return f.Build("keyboard", false, &js, &css)
+	return f.Build("keyboard", false, &css, &js)
 }
 
 func (f *forge) Zero(heading, github, x string) {
