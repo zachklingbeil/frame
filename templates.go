@@ -367,16 +367,16 @@ func (f *forge) ScrollKeybinds() *One {
 (function(){
   const { frame, state } = pathless.context();
   const key = 'scroll';
-  
+
   frame.scrollTop = state[key] || 0;
-  
+
   frame.addEventListener('scroll', () => {
     pathless.update(key, frame.scrollTop);
   });
-  
+
   let speed = 0;
   let isScrolling = false;
-  
+
   const scroll = () => {
     if (speed === 0) {
       isScrolling = false;
@@ -385,20 +385,38 @@ func (f *forge) ScrollKeybinds() *One {
     frame.scrollBy({ top: speed });
     requestAnimationFrame(scroll);
   };
-  
-  const speeds = { w: -20, s: 20, a: -40, d: 40 };
-  pathless.onKey((k) => {
-    if (speeds[k]) {
-      speed = speeds[k];
-      if (!isScrolling) {
-        isScrolling = true;
-        scroll();
-      }
+
+  pathless.W(() => {
+    speed = -20;
+    if (!isScrolling) {
+      isScrolling = true;
+      scroll();
     }
   });
-  
+  pathless.S(() => {
+    speed = 20;
+    if (!isScrolling) {
+      isScrolling = true;
+      scroll();
+    }
+  });
+  pathless.A(() => {
+    speed = -40;
+    if (!isScrolling) {
+      isScrolling = true;
+      scroll();
+    }
+  });
+  pathless.D(() => {
+    speed = 40;
+    if (!isScrolling) {
+      isScrolling = true;
+      scroll();
+    }
+  });
+
   document.addEventListener('keyup', (e) => {
-    if (speeds[e.key]) speed = 0;
+    if (['w','a','s','d'].includes(e.key.toLowerCase())) speed = 0;
   });
 })();
 `
@@ -441,11 +459,8 @@ func (f *forge) BuildSlides(dir string) *One {
             if (slides.length) show(index);
         });
 
-    pathless.onKey((k) => {
-        k = k.toLowerCase();
-        if (k === 'a') show(index - 1);
-        else if (k === 'd') show(index + 1);
-    });
+    pathless.A(() => show(index - 1));
+    pathless.D(() => show(index + 1));
 })();
     `, prefix, prefix, prefix, prefix))
 	css := f.CSS(`
