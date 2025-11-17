@@ -30,6 +30,11 @@ func (f *forge) Keyboard() {
     keyEl.className = 'key';
     keyEl.dataset.key = k;
     keyEl.textContent = k.toUpperCase();
+
+    // Add context as tooltip if available
+    if (entry && entry.context) {
+      keyEl.title = entry.context;
+    }
     
     if (entry && entry.style) {
       keyEl.style.cssText = entry.style;
