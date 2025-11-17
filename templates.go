@@ -10,7 +10,6 @@ import (
 
 func (f *forge) Keyboard() *One {
 	js := f.JS(`
-// Example: place in your frame JS
 (function(){
   const panel = pathless.context().panel;
   const keyMap = pathless.keybinds();
@@ -27,6 +26,9 @@ func (f *forge) Keyboard() *One {
   const grid = document.createElement('div');
   grid.className = 'grid';
 
+  // Map for key divs
+  const keyDivs = {};
+
   // Render keys
   keyOrder.forEach(k => {
     const div = document.createElement('div');
@@ -35,13 +37,7 @@ func (f *forge) Keyboard() *One {
       div.textContent = k;
       const entry = keyMap.get(k);
       if (entry && entry.style) div.style = entry.style;
-      if (entry && entry.pressed) div.classList.add('pressed');
-      // Listen for key state changes
-      setInterval(() => {
-        const entry = keyMap.get(k);
-        if (entry && entry.pressed) div.classList.add('pressed');
-        else div.classList.remove('pressed');
-      }, 50);
+      keyDivs[k] = div;
     }
     grid.appendChild(div);
   });
@@ -49,6 +45,17 @@ func (f *forge) Keyboard() *One {
   // Clear and append
   panel.innerHTML = '';
   panel.appendChild(grid);
+
+  // Animation loop to update pressed state
+  function updateKeys() {
+    for (const k in keyDivs) {
+      const entry = keyMap.get(k);
+      if (entry && entry.pressed) keyDivs[k].classList.add('pressed');
+      else keyDivs[k].classList.remove('pressed');
+    }
+    requestAnimationFrame(updateKeys);
+  }
+  updateKeys();
 })();
 `)
 	css := f.CSS(`
