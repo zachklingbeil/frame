@@ -10,53 +10,47 @@ import (
 
 func (f *forge) Keyboard() *One {
 	js := f.JS(`
+// Example: place in your frame JS
 (function(){
-  const { frame } = pathless.context();
+  const panel = pathless.context().panel;
+  const keyMap = pathless.keybinds();
+
+  // Define the order/layout of keys you want to show
   const keyOrder = [
     'Tab', '', '',
     '1', '2', '3',
     'q', 'w', 'e',
     'a', 's', 'd'
   ];
-  frame.innerHTML = '<div class="grid"></div>';
-  const grid = frame.querySelector('.grid');
-  const keyDivs = {};
-  for (let i = 0; i < keyOrder.length; i++) {
-    const key = keyOrder[i];
-    const d = document.createElement('div');
-    d.className = 'key';
-    if (key) {
-      d.textContent = key.toUpperCase();
-      const entry = pathless.keybinds().get(key);
-      if (entry && entry.style) d.style.cssText += ';' + entry.style;
-      keyDivs[key] = d;
-      // Set initial pressed state
-      if (entry && entry.pressed) d.classList.add('pressed');
+
+  // Create grid container
+  const grid = document.createElement('div');
+  grid.className = 'grid';
+
+  // Render keys
+  keyOrder.forEach(k => {
+    const div = document.createElement('div');
+    div.className = 'key';
+    if (k) {
+      div.textContent = k;
+      const entry = keyMap.get(k);
+      if (entry && entry.style) div.style = entry.style;
+      if (entry && entry.pressed) div.classList.add('pressed');
+      // Listen for key state changes
+      setInterval(() => {
+        const entry = keyMap.get(k);
+        if (entry && entry.pressed) div.classList.add('pressed');
+        else div.classList.remove('pressed');
+      }, 50);
     }
-    grid.appendChild(d);
-  }
+    grid.appendChild(div);
+  });
 
-  // Listen for key state changes and update .pressed class
-  function updatePressed() {
-    for (const key in keyDivs) {
-      const entry = pathless.keybinds().get(key);
-      if (entry && entry.pressed) {
-        keyDivs[key].classList.add('pressed');
-      } else {
-        keyDivs[key].classList.remove('pressed');
-      }
-    }
-  }
-
-  // Listen for key events globally and update UI
-  window.addEventListener('keydown', updatePressed);
-  window.addEventListener('keyup', updatePressed);
-
-  // Also update on load in case keys are already pressed
-  updatePressed();
+  // Clear and append
+  panel.innerHTML = '';
+  panel.appendChild(grid);
 })();
 `)
-
 	css := f.CSS(`
 .keyboard {
     display: flex;
