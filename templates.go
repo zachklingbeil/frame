@@ -8,45 +8,54 @@ import (
 	"strings"
 )
 
-func (f *forge) Keyboard() *One {
+func (f *forge) Keyboard() {
 	js := f.JS(`
 (function(){
-  const panel = pathless.context().panel;
+  const { panel, state } = pathless.context();
   const keyMap = pathless.keybinds();
-  const keyOrder = [
-    'Tab', '', '',
-    '1', '2', '3',
-    'q', 'w', 'e',
-    'a', 's', 'd'
+  
+  const keys = [
+    ['Tab', '', ''],
+    ['1', '2', '3'],
+    ['q', 'w', 'e'],
+    ['a', 's', 'd']
   ];
-  const keyboard = document.createElement('div');
-  keyboard.className = 'keyboard';
-  const grid = document.createElement('div');
-  grid.className = 'grid';
-  const keyDivs = {};
-  keyOrder.forEach(k => {
-    const div = document.createElement('div');
-    div.className = 'key';
-    if (k) {
-      div.textContent = k;
-      const entry = keyMap.get(k);
-      if (entry && entry.style) div.style = entry.style;
-      keyDivs[k] = div;
+  
+  const grid = panel.querySelector('.grid');
+  if (!grid) return;
+  
+  keys.flat().forEach((k) => {
+    const entry = keyMap.get(k);
+    const keyEl = document.createElement('div');
+    keyEl.className = 'key';
+    keyEl.dataset.key = k;
+    keyEl.textContent = k === 'Tab' ? '⇥' : k;
+    
+    if (entry && entry.style) {
+      keyEl.style.cssText = entry.style;
     }
-    grid.appendChild(div);
+    
+    grid.appendChild(keyEl);
   });
-  keyboard.appendChild(grid);
-  panel.innerHTML = '';
-  panel.appendChild(keyboard);
-  function updateKeys() {
-    for (const k in keyDivs) {
-      const entry = keyMap.get(k);
-      if (entry && entry.pressed) keyDivs[k].classList.add('pressed');
-      else keyDivs[k].classList.remove('pressed');
+  
+  const updateKey = (k, pressed) => {
+    const keyEl = grid.querySelector('[data-key="' + k + '"]');
+    if (keyEl) {
+      keyEl.classList.toggle('pressed', pressed);
     }
-    requestAnimationFrame(updateKeys);
-  }
-  updateKeys();
+  };
+  
+  document.addEventListener('keydown', (e) => {
+    if (keyMap.has(e.key)) {
+      updateKey(e.key, true);
+    }
+  });
+  
+  document.addEventListener('keyup', (e) => {
+    if (keyMap.has(e.key)) {
+      updateKey(e.key, false);
+    }
+  });
 })();
 `)
 	css := f.CSS(`
@@ -60,8 +69,6 @@ func (f *forge) Keyboard() *One {
     border-radius: 0.75em;
     box-shadow: 0 0.25em 1.5em #000a;
     padding: 1em;
-    max-width: 90vw;
-    max-height: 90vh;
 }
 .grid {
     display: grid;
@@ -69,11 +76,12 @@ func (f *forge) Keyboard() *One {
     grid-template-rows: repeat(4, 1fr);
     gap: 0.5em;
     width: 100%;
+    max-width: 600px;
 }
 .key {
     border: medium solid #444;
     border-radius: 0.375em;
-    height: 3em;
+    height: 4em;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -91,7 +99,8 @@ func (f *forge) Keyboard() *One {
     pointer-events: none;
 }
 `)
-	return f.Build("keyboard", false, &css, &js)
+	html := One(template.HTML(`<div class="grid"></div>`))
+	f.Build("keyboard", true, &html, &css, &js)
 }
 
 func (f *forge) Zero(heading, github, x string) {

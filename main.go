@@ -34,14 +34,6 @@ func (f *frame) handleFrame(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("X-Frames", strconv.Itoa(f.Count()))
 
-	if r.Header.Get("X-Frame") == "z" {
-		kb := f.Keyboard()
-		if kb != nil {
-			fmt.Fprint(w, *kb)
-		}
-		return
-	}
-
 	current := 0
 	if v := r.Header.Get("X-Frame"); v != "" {
 		i, err := strconv.Atoi(v)
