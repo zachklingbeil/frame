@@ -44,6 +44,7 @@ type Forge interface {
 	CSS(css string) One
 	UpdateIndex(*One)
 	Count() int
+	Keyboard() *One
 	ApiURL() string
 	GetFrame(idx int) *One
 	AddPath(dir string) string

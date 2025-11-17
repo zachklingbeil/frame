@@ -8,6 +8,77 @@ import (
 	"strings"
 )
 
+func (f *forge) Keyboard() *One {
+	js := f.JS(`
+(function(){
+  const { frame } = pathless.context();
+  const keyOrder = [
+    'Tab', '', '',
+    '1', '2', '3',
+    'q', 'w', 'e',
+    'a', 's', 'd'
+  ];
+  frame.innerHTML = '<div class="grid"></div>';
+  const grid = frame.querySelector('.grid');
+  for (let i = 0; i < keyOrder.length; i++) {
+    const key = keyOrder[i];
+    const d = document.createElement('div');
+    d.className = 'key';
+    if (key) {
+      d.textContent = key.toUpperCase();
+      const entry = pathless.keybinds().get(key);
+      if (entry && entry.style) d.style.cssText += ';' + entry.style;
+    }
+    grid.appendChild(d);
+  }
+})();
+`)
+
+	css := f.CSS(`
+.keyboard {
+    position: fixed;
+    left: 2em;
+    bottom: 7em;
+    z-index: 11;
+    display: flex;
+    background: #111;
+    border-radius: 0.75em;
+    box-shadow: 0 0.25em 1.5em #000a;
+    padding: 1em;
+    width: 20em;
+    max-width: 90vw;
+}
+.grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    gap: 0.5em;
+    width: 100%;
+}
+.key {
+    border: medium solid #444;
+    border-radius: 0.375em;
+    height: 3em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1.3em;
+    background: #222;
+    color: white;
+}
+.key.pressed {
+    border-color: #fff;
+    background: #333;
+}
+.key:empty {
+    opacity: 0;
+    pointer-events: none;
+}
+`)
+	return f.Build("keyboard", false, &js, &css)
+}
+
 func (f *forge) Zero(heading, github, x string) {
 	logo := f.ApiURL() + "/img/logo"
 	img := f.Img(logo, "logo", "")
