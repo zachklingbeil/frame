@@ -29,7 +29,7 @@ func (f *forge) Keyboard() {
     const keyEl = document.createElement('div');
     keyEl.className = 'key';
     keyEl.dataset.key = k;
-    keyEl.textContent = k === 'Tab' ? '⇥' : k;
+    keyEl.textContent = k.toUpperCase();
     
     if (entry && entry.style) {
       keyEl.style.cssText = entry.style;
