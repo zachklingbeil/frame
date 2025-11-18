@@ -8,91 +8,6 @@ import (
 	"strings"
 )
 
-func (f *forge) Keyboard() {
-	js := f.JS(`
-(function(){
-  const { panel } = pathless.context();
-  const keyMap = pathless.keybinds();
-
-  const keys = [
-    ['Tab', '', ''],
-    ['1', '2', '3'],
-    ['q', 'w', 'e'],
-    ['a', 's', 'd']
-  ];
-
-  const grid = panel.querySelector('.grid');
-  if (!grid) return;
-
-  keys.flat().forEach((k) => {
-    const entry = keyMap.get(k);
-    const keyEl = document.createElement('div');
-    keyEl.className = 'key';
-    keyEl.dataset.key = k;
-    keyEl.textContent = k.toUpperCase();
-    if (entry && entry.style) keyEl.style.cssText = entry.style;
-    grid.appendChild(keyEl);
-  });
-
-  const updateKey = (k, pressed) => {
-    const keyEl = grid.querySelector('[data-key="' + k + '"]');
-    if (keyEl) keyEl.classList.toggle('pressed', pressed);
-  };
-
-  document.addEventListener('keydown', (e) => {
-    if (keyMap.has(e.key)) updateKey(e.key, true);
-  });
-
-  document.addEventListener('keyup', (e) => {
-    if (keyMap.has(e.key)) updateKey(e.key, false);
-  });
-})();
-`)
-	css := f.CSS(`
-.keyboard {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-    background: #111;
-    border-radius: 0.75em;
-    box-shadow: 0 0.25em 1.5em #000a;
-    padding: 1em;
-}
-.grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    grid-template-rows: repeat(4, 1fr);
-    gap: 0.5em;
-    width: 100%;
-    max-width: 600px;
-}
-.key {
-    border: medium solid #444;
-    border-radius: 0.375em;
-    height: 4em;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    font-size: 1.3em;
-    background: #222;
-    color: white;
-}
-.key.pressed {
-    border-color: #fff;
-    background: #333;
-}
-.key:empty {
-    opacity: 0;
-    pointer-events: none;
-}
-`)
-	html := One(template.HTML(`<div class="grid"></div>`))
-	f.Build("keyboard", true, &html, &css, &js)
-}
-
 func (f *forge) Zero(heading, github, x string) {
 	logo := f.ApiURL() + "/img/logo"
 	img := f.Img(logo, "logo", "")
@@ -357,16 +272,16 @@ func (f *forge) ScrollKeybinds() *One {
 (function(){
   const { frame, state } = pathless.context();
   const key = 'scroll';
-
+  
   frame.scrollTop = state[key] || 0;
-
+  
   frame.addEventListener('scroll', () => {
     pathless.update(key, frame.scrollTop);
   });
-
+  
   let speed = 0;
   let isScrolling = false;
-
+  
   const scroll = () => {
     if (speed === 0) {
       isScrolling = false;
@@ -375,47 +290,27 @@ func (f *forge) ScrollKeybinds() *One {
     frame.scrollBy({ top: speed });
     requestAnimationFrame(scroll);
   };
-
-  pathless.onKey('w', () => {
-    speed = -20;
-    if (!isScrolling) {
-      isScrolling = true;
-      scroll();
+  
+  const speeds = { w: -20, s: 20, a: -40, d: 40 };
+  pathless.onKey((k) => {
+    if (speeds[k]) {
+      speed = speeds[k];
+      if (!isScrolling) {
+        isScrolling = true;
+        scroll();
+      }
     }
   });
-
-  pathless.onKey('s', () => {
-    speed = 20;
-    if (!isScrolling) {
-      isScrolling = true;
-      scroll();
-    }
-  });
-
-  pathless.onKey('a', () => {
-    speed = -40;
-    if (!isScrolling) {
-      isScrolling = true;
-      scroll();
-    }
-  });
-
-  pathless.onKey('d', () => {
-    speed = 40;
-    if (!isScrolling) {
-      isScrolling = true;
-      scroll();
-    }
-  });
-
+  
   document.addEventListener('keyup', (e) => {
-    if (['w', 'a', 's', 'd'].includes(e.key.toLowerCase())) speed = 0;
+    if (speeds[e.key]) speed = 0;
   });
 })();
 `
 	result := One(template.HTML(fmt.Sprintf(`<script>%s</script>`, js)))
 	return &result
 }
+
 func (f *forge) BuildSlides(dir string) *One {
 	prefix := f.AddPath(dir)
 	img := f.Img("", "", "")
@@ -451,8 +346,11 @@ func (f *forge) BuildSlides(dir string) *One {
             if (slides.length) show(index);
         });
 
-    pathless.onKey('a', () => show(index - 1));
-    pathless.onKey('d', () => show(index + 1));
+    pathless.onKey((k) => {
+        k = k.toLowerCase();
+        if (k === 'a') show(index - 1);
+        else if (k === 'd') show(index + 1);
+    });
 })();
     `, prefix, prefix, prefix, prefix))
 	css := f.CSS(`
@@ -471,4 +369,89 @@ func (f *forge) BuildSlides(dir string) *One {
 }
     `)
 	return f.Build("slides", true, img, &css, &js)
+}
+
+func (f *forge) Keyboard() {
+	js := f.JS(`
+(function(){
+  const { panel } = pathless.context();
+  const keyMap = pathless.keybinds();
+
+  const keys = [
+    ['Tab', '', ''],
+    ['1', '2', '3'],
+    ['q', 'w', 'e'],
+    ['a', 's', 'd']
+  ];
+
+  const grid = panel.querySelector('.grid');
+  if (!grid) return;
+
+  keys.flat().forEach((k) => {
+    const entry = keyMap.get(k);
+    const keyEl = document.createElement('div');
+    keyEl.className = 'key';
+    keyEl.dataset.key = k;
+    keyEl.textContent = k.toUpperCase();
+    if (entry && entry.style) keyEl.style.cssText = entry.style;
+    grid.appendChild(keyEl);
+  });
+
+  const updateKey = (k, pressed) => {
+    const keyEl = grid.querySelector('[data-key="' + k + '"]');
+    if (keyEl) keyEl.classList.toggle('pressed', pressed);
+  };
+
+  document.addEventListener('keydown', (e) => {
+    if (keyMap.has(e.key)) updateKey(e.key, true);
+  });
+
+  document.addEventListener('keyup', (e) => {
+    if (keyMap.has(e.key)) updateKey(e.key, false);
+  });
+})();
+`)
+	css := f.CSS(`
+.keyboard {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    background: #111;
+    border-radius: 0.75em;
+    box-shadow: 0 0.25em 1.5em #000a;
+    padding: 1em;
+}
+.grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    gap: 0.5em;
+    width: 100%;
+    max-width: 600px;
+}
+.key {
+    border: medium solid #444;
+    border-radius: 0.375em;
+    height: 4em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1.3em;
+    background: #222;
+    color: white;
+}
+.key.pressed {
+    border-color: #fff;
+    background: #333;
+}
+.key:empty {
+    opacity: 0;
+    pointer-events: none;
+}
+`)
+	html := One(template.HTML(`<div class="grid"></div>`))
+	f.Build("keyboard", true, &html, &css, &js)
 }
