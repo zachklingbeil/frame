@@ -5,8 +5,8 @@ import (
 	"html/template"
 	"net/http"
 	"strconv"
-	"time"
 
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
 
@@ -25,7 +25,7 @@ type frame struct {
 
 func NewFrame(pathlessUrl, apiURL string) Frame {
 	f := &frame{Router: mux.NewRouter()}
-	f.Router.Use(f.middleware(pathlessUrl))
+	f.Router.Use(f.cors(pathlessUrl))
 	f.Forge = NewForge(f.Router, apiURL).(*forge)
 	return f
 }
@@ -49,41 +49,22 @@ func (f *frame) handleFrame(w http.ResponseWriter, r *http.Request) {
 }
 
 func (f *frame) Serve() {
-	server := &http.Server{
-		Addr:         ":1001",
-		Handler:      f.Router,
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 10 * time.Second,
-		IdleTimeout:  120 * time.Second,
-	}
-
+	f.Router.HandleFunc("/frame", f.handleFrame).Methods("GET", "OPTIONS")
 	go func() {
-		if err := server.ListenAndServe(); err != nil {
-			fmt.Printf("Server error: %v\n", err)
-		}
+		http.ListenAndServe(":1001", f.Router)
 	}()
 }
 
-func (f *frame) middleware(pathlessUrl string) mux.MiddlewareFunc {
+func (f *frame) cors(pathlessUrl string) mux.MiddlewareFunc {
 	origin := "http://localhost:1000"
 	if pathlessUrl != "" {
 		origin = "https://" + pathlessUrl
 	}
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Access-Control-Allow-Origin", origin)
-			w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
-			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, X-Frame")
-			w.Header().Set("Access-Control-Expose-Headers", "X-Frame, X-Frames")
 
-			w.Header().Set("Cache-Control", "max-age=86400, public")
-			w.Header().Set("Connection", "keep-alive")
-			w.Header().Set("Keep-Alive", "timeout=120, max=100")
-			if r.Method == http.MethodOptions {
-				w.WriteHeader(http.StatusOK)
-				return
-			}
-			next.ServeHTTP(w, r)
-		})
-	}
+	return handlers.CORS(
+		handlers.AllowedHeaders([]string{"Content-Type", "X-Frame"}),
+		handlers.AllowedOrigins([]string{origin}),
+		handlers.AllowedMethods([]string{"GET", "OPTIONS"}),
+		handlers.ExposedHeaders([]string{"X-Frame", "X-Frames"}),
+	)
 }
