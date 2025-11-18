@@ -1,4 +1,4 @@
-module github.com/zachklingbeil/frame
+module github.com/timefactoryio/frame
 
 go 1.25.4
 
