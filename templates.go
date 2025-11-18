@@ -376,28 +376,31 @@ func (f *forge) ScrollKeybinds() *One {
     requestAnimationFrame(scroll);
   };
 
-  pathless.W(() => {
+  pathless.onKey('w', () => {
     speed = -20;
     if (!isScrolling) {
       isScrolling = true;
       scroll();
     }
   });
-  pathless.S(() => {
+
+  pathless.onKey('s', () => {
     speed = 20;
     if (!isScrolling) {
       isScrolling = true;
       scroll();
     }
   });
-  pathless.A(() => {
+
+  pathless.onKey('a', () => {
     speed = -40;
     if (!isScrolling) {
       isScrolling = true;
       scroll();
     }
   });
-  pathless.D(() => {
+
+  pathless.onKey('d', () => {
     speed = 40;
     if (!isScrolling) {
       isScrolling = true;
@@ -406,14 +409,13 @@ func (f *forge) ScrollKeybinds() *One {
   });
 
   document.addEventListener('keyup', (e) => {
-    if (['w','a','s','d'].includes(e.key.toLowerCase())) speed = 0;
+    if (['w', 'a', 's', 'd'].includes(e.key.toLowerCase())) speed = 0;
   });
 })();
 `
 	result := One(template.HTML(fmt.Sprintf(`<script>%s</script>`, js)))
 	return &result
 }
-
 func (f *forge) BuildSlides(dir string) *One {
 	prefix := f.AddPath(dir)
 	img := f.Img("", "", "")
@@ -449,8 +451,8 @@ func (f *forge) BuildSlides(dir string) *One {
             if (slides.length) show(index);
         });
 
-    pathless.A(() => show(index - 1));
-    pathless.D(() => show(index + 1));
+    pathless.onKey('a', () => show(index - 1));
+    pathless.onKey('d', () => show(index + 1));
 })();
     `, prefix, prefix, prefix, prefix))
 	css := f.CSS(`
