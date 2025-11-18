@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -25,7 +26,7 @@ type frame struct {
 
 func NewFrame(pathlessUrl, apiURL string) Frame {
 	f := &frame{Router: mux.NewRouter()}
-	f.Router.Use(f.cors(pathlessUrl))
+	f.Router.Use(f.cors(pathlessUrl), f.cache())
 	f.Forge = NewForge(f.Router, apiURL).(*forge)
 	return f
 }
@@ -49,9 +50,18 @@ func (f *frame) handleFrame(w http.ResponseWriter, r *http.Request) {
 }
 
 func (f *frame) Serve() {
-	f.Router.HandleFunc("/frame", f.handleFrame).Methods("GET", "OPTIONS")
+	server := &http.Server{
+		Addr:         ":1001",
+		Handler:      f.Router,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  120 * time.Second,
+	}
+
 	go func() {
-		http.ListenAndServe(":1001", f.Router)
+		if err := server.ListenAndServe(); err != nil {
+			fmt.Printf("Server error: %v\n", err)
+		}
 	}()
 }
 
@@ -67,4 +77,13 @@ func (f *frame) cors(pathlessUrl string) mux.MiddlewareFunc {
 		handlers.AllowedMethods([]string{"GET", "OPTIONS"}),
 		handlers.ExposedHeaders([]string{"X-Frame", "X-Frames"}),
 	)
+}
+
+func (f *frame) cache() mux.MiddlewareFunc {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Cache-Control", "max-age=86400, public")
+			next.ServeHTTP(w, r)
+		})
+	}
 }
