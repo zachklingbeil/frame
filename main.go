@@ -49,7 +49,7 @@ func (f *frame) handleFrame(w http.ResponseWriter, r *http.Request) {
 }
 
 func (f *frame) Serve() {
-	f.Router.HandleFunc("/frame", f.handleFrame).Methods("GET")
+	f.Router.HandleFunc("/frame", f.handleFrame).Methods("GET", "OPTIONS")
 	go func() {
 		http.ListenAndServe(":1001", f.Router)
 	}()
@@ -64,6 +64,7 @@ func (f *frame) cors(pathlessUrl string) mux.MiddlewareFunc {
 	return handlers.CORS(
 		handlers.AllowedHeaders([]string{"Content-Type", "X-Frame"}),
 		handlers.AllowedOrigins([]string{origin}),
-		handlers.AllowedMethods([]string{"GET"}),
+		handlers.AllowedMethods([]string{"GET", "OPTIONS"}),
+		handlers.ExposedHeaders([]string{"X-Frame", "X-Frames"}),
 	)
 }
