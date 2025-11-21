@@ -56,7 +56,7 @@ func (f *fx) Serve() {
 }
 
 func (f *fx) cors(pathlessUrl string) mux.MiddlewareFunc {
-	origin := "http://localhost:1000"
+	origin := "http://pathless:1000"
 	if pathlessUrl != "" {
 		origin = "https://" + pathlessUrl
 	}
