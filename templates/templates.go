@@ -10,25 +10,6 @@ import (
 	"github.com/timefactoryio/frame/zero"
 )
 
-type Templates interface {
-	Style
-	GithubLink(username string) *zero.One
-	XLink(username string) *zero.One
-	Landing(heading, github, x string)
-}
-
-type templates struct {
-	Style
-	zero.Zero
-}
-
-func NewTemplates(zero zero.Zero) Templates {
-	return &templates{
-		Style: NewStyle(),
-		Zero:  zero,
-	}
-}
-
 func (t *templates) Landing(heading, github, x string) {
 	img := t.Img(t.ApiUrl()+"/img/logo", "")
 	h1 := t.H1(heading)
@@ -177,49 +158,4 @@ func (t *templates) BuildSlides(dir string) *zero.One {
     `, prefix, prefix, prefix, prefix))
 
 	return t.Build("slides", true, img, &css, &js)
-}
-
-func (t *templates) Keyboard() {
-	css := t.CSS(t.KeyboardCSS())
-	js := t.JS(`
-(function(){
-  const { panel } = pathless.context();
-  const keyMap = pathless.keybinds();
-
-  const keys = [
-    ['Tab', '', ''],
-    ['1', '2', '3'],
-    ['q', 'w', 'e'],
-    ['a', 's', 'd']
-  ];
-
-  const grid = panel.querySelector('.grid');
-  if (!grid) return;
-
-  keys.flat().forEach((k) => {
-    const entry = keyMap.get(k);
-    const keyEl = document.createElement('div');
-    keyEl.className = 'key';
-    keyEl.dataset.key = k;
-    keyEl.textContent = k.toUpperCase();
-    if (entry && entry.style) keyEl.style.cssText = entry.style;
-    grid.appendChild(keyEl);
-  });
-
-  const updateKey = (k, pressed) => {
-    const keyEl = grid.querySelector('[data-key="' + k + '"]');
-    if (keyEl) keyEl.classList.toggle('pressed', pressed);
-  };
-
-  document.addEventListener('keydown', (e) => {
-    if (keyMap.has(e.key)) updateKey(e.key, true);
-  });
-
-  document.addEventListener('keyup', (e) => {
-    if (keyMap.has(e.key)) updateKey(e.key, false);
-  });
-})();
-`)
-	html := zero.One(template.HTML(`<div class="grid"></div>`))
-	t.Build("keyboard", true, &html, &css, &js)
 }

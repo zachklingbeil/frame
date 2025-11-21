@@ -1,52 +1,22 @@
 package templates
 
-import _ "embed"
+import "github.com/timefactoryio/frame/zero"
 
-//go:embed css/zero.css
-var zeroCSS string
-
-//go:embed css/slides.css
-var slidesCSS string
-
-//go:embed css/footer.css
-var footerCSS string
-
-//go:embed css/text.css
-var textCSS string
-
-//go:embed css/keyboard.css
-var keyboardCSS string
-
-type Style interface {
-	ZeroCSS() string
-	SlidesCSS() string
-	FooterCSS() string
-	TextCSS() string
-	KeyboardCSS() string
+type Templates interface {
+	Style
+	GithubLink(username string) *zero.One
+	XLink(username string) *zero.One
+	Landing(heading, github, x string)
 }
 
-type style struct{}
-
-func NewStyle() Style {
-	return &style{}
+type templates struct {
+	Style
+	zero.Zero
 }
 
-func (s *style) ZeroCSS() string {
-	return zeroCSS
-}
-
-func (s *style) SlidesCSS() string {
-	return slidesCSS
-}
-
-func (s *style) FooterCSS() string {
-	return footerCSS
-}
-
-func (s *style) TextCSS() string {
-	return textCSS
-}
-
-func (s *style) KeyboardCSS() string {
-	return keyboardCSS
+func NewTemplates(zero zero.Zero) Templates {
+	return &templates{
+		Style: NewStyle(),
+		Zero:  zero,
+	}
 }
