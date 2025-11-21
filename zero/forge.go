@@ -14,15 +14,13 @@ type One template.HTML
 
 func NewForge() Forge {
 	f := &forge{
-		index:   make([]*One, 0),
-		Element: NewElement().(*element),
+		index: make([]*One, 0),
 	}
 	return f
 }
 
 type forge struct {
 	index []*One
-	Element
 }
 
 type Forge interface {
@@ -34,7 +32,6 @@ type Forge interface {
 	Frames() int
 	Count() int
 	HandleFrame(w http.ResponseWriter, r *http.Request)
-	Element
 }
 
 func (f *forge) GetFrame(idx int) *One {

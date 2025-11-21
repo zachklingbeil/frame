@@ -35,7 +35,7 @@ type Element interface {
 	Kbd(s string) *One
 	Samp(s string) *One
 	VarElem(s string) *One
-	// Abbr(s string) *One
+	Abbr(s string) *One
 	Time(s string) *One
 	Button(label string) *One
 	Code(code string) *One
@@ -94,7 +94,7 @@ func (e *element) Kbd(s string) *One       { return Tag("kbd", s) }
 func (e *element) Samp(s string) *One      { return Tag("samp", s) }
 func (e *element) VarElem(s string) *One   { return Tag("var", s) }
 
-// func (e *element) Abbr(s string) *One       { return Tag("abbr", s) }
+func (e *element) Abbr(s string) *One       { return Tag("abbr", s) }
 func (e *element) Time(s string) *One       { return Tag("time", s) }
 func (e *element) Button(label string) *One { return Tag("button", label) }
 func (e *element) Code(code string) *One    { return Tag("code", code) }

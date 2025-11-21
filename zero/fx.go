@@ -1,4 +1,4 @@
-package fx
+package zero
 
 import (
 	"bytes"
@@ -8,7 +8,66 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
 )
+
+type Fx interface {
+	AddFile(filePath string, prefix string) error
+	AddPath(dir string) string
+	PathlessUrl() string
+	ApiUrl() string
+	Serve()
+	Router() *mux.Router
+}
+
+type fx struct {
+	router      *mux.Router
+	pathlessUrl string
+	apiURL      string
+}
+
+func NewFx(pathlessUrl, apiUrl string) Fx {
+	f := &fx{
+		router:      mux.NewRouter(),
+		pathlessUrl: pathlessUrl,
+	}
+	f.router.Use(f.cors(pathlessUrl))
+	return f
+}
+
+func (f *fx) Router() *mux.Router {
+	return f.router
+}
+
+func (f *fx) PathlessUrl() string {
+	return f.pathlessUrl
+}
+
+func (f *fx) ApiUrl() string {
+	return f.apiURL
+}
+
+func (f *fx) Serve() {
+	go func() {
+		http.ListenAndServe(":1001", f.Router())
+	}()
+}
+
+func (f *fx) cors(pathlessUrl string) mux.MiddlewareFunc {
+	origin := "http://localhost:1000"
+	if pathlessUrl != "" {
+		origin = "https://" + pathlessUrl
+	}
+
+	return handlers.CORS(
+		handlers.AllowedHeaders([]string{"Content-Type", "X-Frame"}),
+		handlers.AllowedOrigins([]string{origin}),
+		handlers.AllowedMethods([]string{"GET", "OPTIONS"}),
+		handlers.ExposedHeaders([]string{"X-Frame", "X-Frames"}),
+	)
+}
 
 // Add a single file to the frame with a prefix path
 func (f *fx) AddFile(filePath string, prefix string) error {
@@ -65,7 +124,7 @@ func (f *fx) addRoute(path string, data []byte, contentType string) {
 	gzipWriter.Close()
 	zipped := buf.Bytes()
 
-	f.Router.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
+	f.Router().HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Encoding", "gzip")
 		w.Header().Set("Content-Type", contentType)
 		w.Write(zipped)

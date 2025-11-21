@@ -7,33 +7,29 @@ import (
 	"os"
 	"strings"
 
-	"github.com/timefactoryio/frame/fx"
-
 	"github.com/timefactoryio/frame/zero"
 )
 
 type Templates interface {
 	Style
-	zero.Forge
 	GithubLink(username string) *zero.One
 	XLink(username string) *zero.One
+	Landing(heading, github, x string)
 }
 
 type templates struct {
 	Style
-	zero.Forge
-	fx.Fx
+	zero.Zero
 }
 
-func NewTemplates(forge zero.Forge, fx fx.Fx) Templates {
+func NewTemplates(zero zero.Zero) Templates {
 	return &templates{
 		Style: NewStyle(),
-		Forge: forge,
-		Fx:    fx,
+		Zero:  zero,
 	}
 }
 
-func (t *templates) Zero(heading, github, x string) {
+func (t *templates) Landing(heading, github, x string) {
 	img := t.Img(t.ApiUrl()+"/img/logo", "")
 	h1 := t.H1(heading)
 	css := t.CSS(t.ZeroCSS())
