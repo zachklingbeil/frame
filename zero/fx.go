@@ -29,9 +29,16 @@ type fx struct {
 }
 
 func NewFx(pathlessUrl, apiUrl string) Fx {
+	if apiUrl == "" {
+		apiUrl = "http://localhost:1001"
+	} else if !strings.HasPrefix(apiUrl, "http://") && !strings.HasPrefix(apiUrl, "https://") {
+		apiUrl = "https://" + apiUrl
+	}
+
 	f := &fx{
 		router:      mux.NewRouter(),
 		pathlessUrl: pathlessUrl,
+		apiURL:      apiUrl,
 	}
 	f.router.Use(f.cors(pathlessUrl))
 	return f

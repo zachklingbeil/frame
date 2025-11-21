@@ -33,15 +33,16 @@ func (t *templates) Footer(links ...*zero.One) *zero.One {
 }
 
 func (t *templates) GithubLink(username string) *zero.One {
-	ghURL := fmt.Sprintf("%s/img/gh", t.ApiUrl())
-	return t.LinkedImg(fmt.Sprintf("%s/%s", t.ApiUrl(), username), ghURL, "GitHub")
+	logo := fmt.Sprintf("%s/img/gh", t.ApiUrl())
+	href := fmt.Sprintf("https://github.com/%s", username)
+	return t.LinkedImg(href, logo, "GitHub")
 }
 
 func (t *templates) XLink(username string) *zero.One {
-	xURL := fmt.Sprintf("%s/img/x", t.ApiUrl())
-	return t.LinkedImg(fmt.Sprintf("%s/%s", t.ApiUrl(), username), xURL, "X")
+	logo := fmt.Sprintf("%s/img/x", t.ApiUrl())
+	href := fmt.Sprintf("https://x.com/%s", username)
+	return t.LinkedImg(href, logo, "X")
 }
-
 func (t *templates) README(file string) *zero.One {
 	content, err := os.ReadFile(file)
 	if err != nil {
