@@ -42,7 +42,7 @@ func (t *templates) GithubLink(username string) *zero.One {
 	}
 	logo := fmt.Sprintf("%s/img/gh", t.ApiUrl())
 	href := fmt.Sprintf("https://github.com/%s", username)
-	return t.LinkedImg(href, logo, "GitHub")
+	return t.LinkedIcon(href, logo, "GitHub")
 }
 
 func (t *templates) XLink(username string) *zero.One {
@@ -51,7 +51,7 @@ func (t *templates) XLink(username string) *zero.One {
 	}
 	logo := fmt.Sprintf("%s/img/x", t.ApiUrl())
 	href := fmt.Sprintf("https://x.com/%s", username)
-	return t.LinkedImg(href, logo, "X")
+	return t.LinkedIcon(href, logo, "X")
 }
 
 func (t *templates) README(file string) *zero.One {

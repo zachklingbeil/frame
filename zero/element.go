@@ -44,6 +44,7 @@ type Element interface {
 	Div(class string, children ...*One) *One
 	Link(href, text string) *One
 	LinkedImg(href, src, alt string) *One
+	LinkedIcon(href, src, alt string) *One
 	List(items []any, ordered bool) *One
 	Img(src, alt string) *One
 	Video(src string) *One
@@ -134,7 +135,21 @@ func (e *element) LinkedImg(href, src, alt string) *One {
 		alt = strings.TrimSuffix(fileName, filepath.Ext(fileName))
 	}
 	o := One(template.HTML(fmt.Sprintf(
-		`<a href="%s" target="_blank" rel="noopener"><img src="%s" alt="%s"></a>`,
+		`<a href="%s" target="_blank" rel="noopener"><img src="%s" alt="%s></a>`,
+		html.EscapeString(href),
+		html.EscapeString(src),
+		html.EscapeString(alt),
+	)))
+	return &o
+}
+func (e *element) LinkedIcon(href, src, alt string) *One {
+	if alt == "" {
+		parts := strings.Split(src, "/")
+		fileName := parts[len(parts)-1]
+		alt = strings.TrimSuffix(fileName, filepath.Ext(fileName))
+	}
+	o := One(template.HTML(fmt.Sprintf(
+		`<a href="%s" target="_blank" rel="noopener"><img src="%s" alt="%s "class="icon"></a>`,
 		html.EscapeString(href),
 		html.EscapeString(src),
 		html.EscapeString(alt),
