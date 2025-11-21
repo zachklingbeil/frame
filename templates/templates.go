@@ -11,7 +11,8 @@ import (
 )
 
 func (t *templates) Landing(heading, github, x string) {
-	img := t.Img(t.ApiUrl()+"/img/logo", "")
+	logo := fmt.Sprintf("%s/img/logo", t.ApiUrl())
+	img := t.Img(logo, "")
 	h1 := t.H1(heading)
 	css := t.CSS(t.ZeroCSS())
 
