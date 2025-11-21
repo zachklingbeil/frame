@@ -29,7 +29,7 @@ func (t *templates) Landing(heading, github, x string) {
 func (t *templates) Footer(links ...*zero.One) *zero.One {
 	footer := t.Div("footer", links...)
 	css := t.CSS(t.FooterCSS())
-	return t.Build("", false, &css, footer)
+	return t.Build("footer", false, &css, footer)
 }
 
 func (t *templates) GithubLink(username string) *zero.One {
