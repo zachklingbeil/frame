@@ -41,7 +41,7 @@ func (t *templates) XLink(username string) *zero.One {
 	return t.LinkedImg(fmt.Sprintf("https://x.com/%s", username), xURL, "X")
 }
 
-func (t *templates) README(file string, cssPath string) *zero.One {
+func (t *templates) README(file string) *zero.One {
 	content, err := os.ReadFile(file)
 	if err != nil {
 		empty := zero.One("")
