@@ -11,34 +11,44 @@ import (
 )
 
 func (t *templates) Landing(heading, github, x string) {
-	logo := fmt.Sprintf("%s/img/logo", t.ApiUrl())
-	img := t.Img(logo, "")
+	logo := t.ApiUrl() + "/img/logo"
+	img := t.Img(logo, "logo")
 	h1 := t.H1(heading)
 	css := t.CSS(t.ZeroCSS())
-
-	var footer *zero.One
-	if github != "" || x != "" {
-		footer = t.Footer(
-			t.GithubLink(github),
-			t.XLink(x),
-		)
-	}
+	footer := t.buildFooter(github, x)
 	t.Build("zero", true, &css, img, h1, footer)
 }
 
-func (t *templates) Footer(links ...*zero.One) *zero.One {
-	css := t.CSS(t.FooterCSS())
-	allLinks := append([]*zero.One{&css}, links...)
-	return t.Build("footer", false, allLinks...)
+func (t *templates) buildFooter(github, x string) *zero.One {
+	if github == "" && x == "" {
+		return nil
+	}
+
+	footerCSS := t.CSS(t.FooterCSS())
+	elements := []*zero.One{&footerCSS}
+
+	if github != "" {
+		elements = append(elements, t.GithubLink(github))
+	}
+	if x != "" {
+		elements = append(elements, t.XLink(x))
+	}
+	return t.Build("footer", false, elements...)
 }
 
 func (t *templates) GithubLink(username string) *zero.One {
+	if username == "" {
+		return nil
+	}
 	logo := fmt.Sprintf("%s/img/gh", t.ApiUrl())
 	href := fmt.Sprintf("https://github.com/%s", username)
 	return t.LinkedImg(href, logo, "GitHub")
 }
 
 func (t *templates) XLink(username string) *zero.One {
+	if username == "" {
+		return nil
+	}
 	logo := fmt.Sprintf("%s/img/x", t.ApiUrl())
 	href := fmt.Sprintf("https://x.com/%s", username)
 	return t.LinkedImg(href, logo, "X")
