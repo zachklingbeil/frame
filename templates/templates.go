@@ -27,9 +27,9 @@ func (t *templates) Landing(heading, github, x string) {
 }
 
 func (t *templates) Footer(links ...*zero.One) *zero.One {
-	footer := t.Div("footer", links...)
 	css := t.CSS(t.FooterCSS())
-	return t.Build("footer", false, &css, footer)
+	allLinks := append([]*zero.One{&css}, links...)
+	return t.Build("footer", false, allLinks...)
 }
 
 func (t *templates) GithubLink(username string) *zero.One {
@@ -43,6 +43,7 @@ func (t *templates) XLink(username string) *zero.One {
 	href := fmt.Sprintf("https://x.com/%s", username)
 	return t.LinkedImg(href, logo, "X")
 }
+
 func (t *templates) README(file string) *zero.One {
 	content, err := os.ReadFile(file)
 	if err != nil {
