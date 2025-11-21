@@ -1,9 +1,10 @@
-package frame
+package zero
 
 import (
 	"fmt"
 	"html"
 	"html/template"
+	"path/filepath"
 	"strings"
 
 	math "github.com/litao91/goldmark-mathjax"
@@ -34,17 +35,17 @@ type Element interface {
 	Kbd(s string) *One
 	Samp(s string) *One
 	VarElem(s string) *One
-	Abbr(s string) *One
+	// Abbr(s string) *One
 	Time(s string) *One
 	Button(label string) *One
 	Code(code string) *One
 	CodeBlock(lang, code string) *One
 
-	Div(class string) *One
-	WrapDiv(class string, children ...*One) *One
+	Div(class string, children ...*One) *One
 	Link(href, text string) *One
+	LinkedImg(href, src, alt string) *One
 	List(items []any, ordered bool) *One
-	Img(src, alt, reference string) *One
+	Img(src, alt string) *One
 	Video(src string) *One
 	Audio(src string) *One
 	Iframe(src string) *One
@@ -73,26 +74,27 @@ func (e *element) Markdown() *goldmark.Markdown {
 	return e.Md
 }
 
-func (e *element) H1(s string) *One         { return Tag("h1", s) }
-func (e *element) H2(s string) *One         { return Tag("h2", s) }
-func (e *element) H3(s string) *One         { return Tag("h3", s) }
-func (e *element) H4(s string) *One         { return Tag("h4", s) }
-func (e *element) H5(s string) *One         { return Tag("h5", s) }
-func (e *element) H6(s string) *One         { return Tag("h6", s) }
-func (e *element) Paragraph(s string) *One  { return Tag("p", s) }
-func (e *element) Span(s string) *One       { return Tag("span", s) }
-func (e *element) Strong(s string) *One     { return Tag("strong", s) }
-func (e *element) Em(s string) *One         { return Tag("em", s) }
-func (e *element) Small(s string) *One      { return Tag("small", s) }
-func (e *element) Mark(s string) *One       { return Tag("mark", s) }
-func (e *element) Del(s string) *One        { return Tag("del", s) }
-func (e *element) Ins(s string) *One        { return Tag("ins", s) }
-func (e *element) Sub(s string) *One        { return Tag("sub", s) }
-func (e *element) Sup(s string) *One        { return Tag("sup", s) }
-func (e *element) Kbd(s string) *One        { return Tag("kbd", s) }
-func (e *element) Samp(s string) *One       { return Tag("samp", s) }
-func (e *element) VarElem(s string) *One    { return Tag("var", s) }
-func (e *element) Abbr(s string) *One       { return Tag("abbr", s) }
+func (e *element) H1(s string) *One        { return Tag("h1", s) }
+func (e *element) H2(s string) *One        { return Tag("h2", s) }
+func (e *element) H3(s string) *One        { return Tag("h3", s) }
+func (e *element) H4(s string) *One        { return Tag("h4", s) }
+func (e *element) H5(s string) *One        { return Tag("h5", s) }
+func (e *element) H6(s string) *One        { return Tag("h6", s) }
+func (e *element) Paragraph(s string) *One { return Tag("p", s) }
+func (e *element) Span(s string) *One      { return Tag("span", s) }
+func (e *element) Strong(s string) *One    { return Tag("strong", s) }
+func (e *element) Em(s string) *One        { return Tag("em", s) }
+func (e *element) Small(s string) *One     { return Tag("small", s) }
+func (e *element) Mark(s string) *One      { return Tag("mark", s) }
+func (e *element) Del(s string) *One       { return Tag("del", s) }
+func (e *element) Ins(s string) *One       { return Tag("ins", s) }
+func (e *element) Sub(s string) *One       { return Tag("sub", s) }
+func (e *element) Sup(s string) *One       { return Tag("sup", s) }
+func (e *element) Kbd(s string) *One       { return Tag("kbd", s) }
+func (e *element) Samp(s string) *One      { return Tag("samp", s) }
+func (e *element) VarElem(s string) *One   { return Tag("var", s) }
+
+// func (e *element) Abbr(s string) *One       { return Tag("abbr", s) }
 func (e *element) Time(s string) *One       { return Tag("time", s) }
 func (e *element) Button(label string) *One { return Tag("button", label) }
 func (e *element) Code(code string) *One    { return Tag("code", code) }
@@ -112,11 +114,7 @@ func (e *element) CodeBlock(lang, code string) *One {
 	return &o
 }
 
-func (e *element) Div(class string) *One {
-	o := One(template.HTML(fmt.Sprintf(`<div class="%s"></div>`, html.EscapeString(class))))
-	return &o
-}
-func (e *element) WrapDiv(class string, children ...*One) *One {
+func (e *element) Div(class string, children ...*One) *One {
 	var b strings.Builder
 	b.WriteString(fmt.Sprintf(`<div class="%s">`, html.EscapeString(class)))
 	for _, child := range children {
@@ -128,8 +126,38 @@ func (e *element) WrapDiv(class string, children ...*One) *One {
 	o := One(template.HTML(b.String()))
 	return &o
 }
+
+func (e *element) LinkedImg(href, src, alt string) *One {
+	if alt == "" {
+		parts := strings.Split(src, "/")
+		fileName := parts[len(parts)-1]
+		alt = strings.TrimSuffix(fileName, filepath.Ext(fileName))
+	}
+	o := One(template.HTML(fmt.Sprintf(
+		`<a href="%s" target="_blank" rel="noopener"><img src="%s" alt="%s"></a>`,
+		html.EscapeString(href),
+		html.EscapeString(src),
+		html.EscapeString(alt),
+	)))
+	return &o
+}
+
 func (e *element) Link(href, text string) *One {
 	o := One(template.HTML(fmt.Sprintf(`<a href="%s">%s</a>`, html.EscapeString(href), html.EscapeString(text))))
+	return &o
+}
+
+func (e *element) Img(src, alt string) *One {
+	if alt == "" {
+		parts := strings.Split(src, "/")
+		fileName := parts[len(parts)-1]
+		alt = strings.TrimSuffix(fileName, filepath.Ext(fileName))
+	}
+	o := One(template.HTML(fmt.Sprintf(
+		`<img src="%s" alt="%s">`,
+		html.EscapeString(src),
+		html.EscapeString(alt),
+	)))
 	return &o
 }
 
@@ -145,35 +173,6 @@ func (e *element) List(items []any, ordered bool) *One {
 	}
 	b.WriteString(fmt.Sprintf("</%s>", tag))
 	o := One(template.HTML(b.String()))
-	return &o
-}
-
-func (e *element) Img(src, alt, reference string) *One {
-	var styles string
-	switch reference {
-	case "max":
-		styles = "width: 95vw; display: block; margin: 0 auto;"
-	case "large":
-		styles = "width: 75vw; display: block; margin: 0 auto;"
-	case "medium":
-		styles = "width: 50vw; display: block; margin: 0 auto;"
-	case "small":
-		styles = "width: 25vw; display: block; margin: 0 auto;"
-	case "":
-		styles = ""
-	}
-
-	styleAttr := ""
-	if styles != "" {
-		styleAttr = fmt.Sprintf(` style="%s"`, styles)
-	}
-
-	o := One(template.HTML(fmt.Sprintf(
-		`<img src="%s" alt="%s"%s>`,
-		html.EscapeString(src),
-		html.EscapeString(alt),
-		styleAttr,
-	)))
 	return &o
 }
 

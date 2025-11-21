@@ -1,0 +1,11 @@
+.footer {
+	display: flex;
+	justify-content: center;
+	gap: 1.5em;
+	margin-top: 1.5em;
+}
+.footer img.icon {
+	width: 2em;
+	height: 2em;
+	object-fit: contain;
+}
