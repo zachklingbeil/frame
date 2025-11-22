@@ -85,7 +85,7 @@ func (t *templates) README(file string) *zero.One {
 func (t *templates) Scroll() *zero.One {
 	js := `
 (function(){
-  const { frame, state } = pathless.context();
+  const { frame, state } = pathless;
   const key = 'scroll';
   
   frame.scrollTop = state[key] || 0;
@@ -132,7 +132,7 @@ func (t *templates) BuildSlides(dir string) *zero.One {
 	css := t.CSS(t.SlidesCSS())
 	js := t.JS(fmt.Sprintf(`
 (function() {
-    const { frame, state } = pathless.context();
+    const { frame, state } = pathless;
 
     let slides = [];
     let index = state.nav || 0;
