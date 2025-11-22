@@ -83,8 +83,40 @@ func (t *templates) README(file string) *zero.One {
 }
 
 func (t *templates) Scroll() *zero.One {
-	js := t.JS(`pathless.scroll();`)
-	return &js
+	js := `
+(function(){
+  const frame = pathless.frame;
+  const state = pathless.state;
+  const key = 'scroll';
+
+  frame.scrollTop = state[key] || 0;
+  frame.addEventListener('scroll', () => pathless.update(key, frame.scrollTop));
+
+  let speed = 0;
+
+  const scroll = () => {
+    if (speed !== 0) {
+      frame.scrollBy({ top: speed });
+      requestAnimationFrame(scroll);
+    }
+  };
+
+  const speeds = { w: -20, s: 20, a: -40, d: 40 };
+
+  document.addEventListener('keydown', (e) => {
+    if (speeds[e.key] && speed === 0) {
+      speed = speeds[e.key];
+      scroll();
+    }
+  });
+
+  document.addEventListener('keyup', (e) => {
+    if (speeds[e.key]) speed = 0;
+  });
+})();
+`
+	result := zero.One(template.HTML(fmt.Sprintf(`<script>%s</script>`, js)))
+	return &result
 }
 
 func (t *templates) BuildSlides(dir string) *zero.One {
