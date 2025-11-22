@@ -130,42 +130,44 @@ func (t *templates) BuildSlides(dir string) *zero.One {
 	img := t.Img("", "")
 	css := t.CSS(t.SlidesCSS())
 	js := t.JS(fmt.Sprintf(`
-const frame = pathless.frame();
-const state = pathless.state();
+(function() {
+  const frame = pathless.frame();
+  const state = pathless.state();
 
-let slides = [];
-let index = state.nav || 0;
+  let slides = [];
+  let index = state.nav || 0;
 
-async function show(i) {
-    if (!slides.length) return;
-    index = ((i %% slides.length) + slides.length) %% slides.length;
-    pathless.update("nav", index);
+  async function show(i) {
+      if (!slides.length) return;
+      index = ((i %% slides.length) + slides.length) %% slides.length;
+      pathless.update("nav", index);
 
-    const imgEl = frame.querySelector('img');
-    if (!imgEl) return;
+      const imgEl = frame.querySelector('img');
+      if (!imgEl) return;
 
-    const slide = slides[index];
-    const fetchKey = '%s.' + slide;
-    try {
-        const { data } = await pathless.fetch(apiUrl + '/%s/' + slide, { key: fetchKey });
-        imgEl.src = data;
-        imgEl.alt = slide;
-    } catch (e) {
-        imgEl.alt = "Failed to load image";
-    }
-}
+      const slide = slides[index];
+      const fetchKey = '%s.' + slide;
+      try {
+          const { data } = await pathless.fetch(apiUrl + '/%s/' + slide, { key: fetchKey });
+          imgEl.src = data;
+          imgEl.alt = slide;
+      } catch (e) {
+          imgEl.alt = "Failed to load image";
+      }
+  }
 
-pathless.fetch(apiUrl + '/%s/order', { key: '%s.order' })
-    .then(({ data }) => {
-        slides = data || [];
-        if (slides.length) show(index);
-    });
+  pathless.fetch(apiUrl + '/%s/order', { key: '%s.order' })
+      .then(({ data }) => {
+          slides = data || [];
+          if (slides.length) show(index);
+      });
 
-pathless.onKey((k) => {
-    k = k.toLowerCase();
-    if (k === 'a') show(index - 1);
-    else if (k === 'd') show(index + 1);
-});
+  pathless.onKey((k) => {
+      k = k.toLowerCase();
+      if (k === 'a') show(index - 1);
+      else if (k === 'd') show(index + 1);
+  });
+})();
     `, prefix, prefix, prefix, prefix))
 
 	return t.Build("slides", true, img, &css, &js)
