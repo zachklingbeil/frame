@@ -8,7 +8,7 @@ type Templates interface {
 	XLink(username string) *zero.One
 	Landing(heading, github, x string)
 	README(file string) *zero.One
-	ScrollKeybinds() *zero.One
+	Scroll() *zero.One
 	BuildSlides(dir string) *zero.One
 }
 
