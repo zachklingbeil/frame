@@ -36,3 +36,29 @@ func NewZero() *Zero {
 		AppTemplate:    appHtml,
 	}
 }
+
+func (z *Zero) BuildMaps() {}
+
+type UniverseMap struct {
+	APIURL     string
+	Focused    uint8
+	Layout     uint8
+	Variant    uint8
+	PrevLayout [2]uint8
+}
+
+func (u *UniverseMap) NewUniverseMap(url string) *UniverseMap {
+	return &UniverseMap{
+		APIURL:     url,
+		Focused:    0,
+		Layout:     0,
+		Variant:    0,
+		PrevLayout: [2]uint8{0, 0},
+	}
+}
+
+type FrameMap struct {
+	Source string
+	Kb     map[string]string
+	Frames [][]byte
+}

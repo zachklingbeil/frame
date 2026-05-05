@@ -1,11 +1,8 @@
 package fx
 
 import (
-	"bytes"
 	"encoding/binary"
-	"encoding/json"
 	"net/http"
-	"strconv"
 
 	"github.com/timefactoryio/frame/zero"
 )
@@ -13,7 +10,6 @@ import (
 type Fx struct {
 	*zero.Zero
 	Forge
-	Element
 	Circuit
 	// APIURL string
 	Hello []byte
@@ -22,33 +18,41 @@ type Fx struct {
 func NewFx() *Fx {
 	return &Fx{
 		Forge:   NewForge().(*forge),
-		Element: NewElement().(*element),
 		Circuit: NewCircuit().(*circuit),
 		Zero:    zero.NewZero(),
 	}
 }
 
 func (fx *Fx) BuildHello() {
-	var values []*Value
-	kb := []byte(fx.Keyboard)
-	values = append(values, &Value{Name: "keyboard", Type: "text/html", Size: len(kb), Data: kb})
-
-	for i, frame := range fx.Frames() {
+	var chunks [][]byte
+	chunks = append(chunks, []byte(fx.Keyboard))
+	for _, frame := range fx.Frames() {
 		if frame != nil {
-			data := []byte(string(*frame))
-			values = append(values, &Value{Name: strconv.Itoa(i), Type: "text/html", Size: len(data), Data: data})
+			chunks = append(chunks, []byte(*frame))
 		}
 	}
 
-	manifestJSON, _ := json.Marshal(values)
-	var buf bytes.Buffer
-	binary.Write(&buf, binary.BigEndian, uint32(len(manifestJSON)))
-	buf.Write(manifestJSON)
-	for _, v := range values {
-		buf.Write(v.Data)
+	n := len(chunks)
+	total := 4 + n*8
+	for _, c := range chunks {
+		total += len(c)
 	}
 
-	fx.Hello = fx.Compress(buf.Bytes())
+	buf := make([]byte, total)
+	binary.BigEndian.PutUint32(buf, uint32(n))
+	off := uint32(4 + n*8)
+	for i, c := range chunks {
+		binary.BigEndian.PutUint32(buf[4+i*8:], off)
+		binary.BigEndian.PutUint32(buf[8+i*8:], uint32(len(c)))
+		off += uint32(len(c))
+	}
+	pos := 4 + n*8
+	for _, c := range chunks {
+		copy(buf[pos:], c)
+		pos += len(c)
+	}
+
+	fx.Hello = fx.Compress(buf)
 }
 
 func (fx *Fx) HandleHello(w http.ResponseWriter, r *http.Request) {
